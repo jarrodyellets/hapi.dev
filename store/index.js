@@ -5,6 +5,7 @@ export const state = () => ({
   display: "home",
   language: "en_US",
   version: "",
+  adCounter: null,
   modules: [
     "accept",
     "ammo",
@@ -67,6 +68,9 @@ export const mutations = {
   },
   setVersion (state, version) {
     state.version = version
+  },
+  setAdCounter (state, adCounter) {
+    state.adCounter = adCounter
   }
 }
 
@@ -82,6 +86,9 @@ export const getters = {
   },
   loadVersion (state) {
     return state.version
+  },
+  loadAdCounter (state) {
+    return state.adCounter
   },
   loadModules (state) {
     return state.modules

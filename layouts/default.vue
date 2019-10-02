@@ -11,6 +11,9 @@ import Nav from "~/components/Navs/Nav.vue";
 export default {
   components: {
     Nav
+  },
+  mounted() {
+    this.$store.commit("setAdCounter", Math.floor(Math.random() * 5) + 1)
   }
 };
 </script>

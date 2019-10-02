@@ -1,7 +1,7 @@
 export const ads = {
   1: {
-    bold: "hapi Commercial License",
-    text: "Control your upgrade timeline and build your application on a secure foundation",
+    bold: "Control Your Upgrade Timeline",
+    text: "A hapi commercial license allows you to control your upgrade timeline and build your application on a secure foundation",
     link: "/support"
   }, 
   2: {
@@ -10,8 +10,18 @@ export const ads = {
     link: "/family/joi"
   },
   3: {
-    bold: "hapi Commercial License",
-    text: "Expand the hapi ecosystem with enterprise plugins",
+    bold: "Enterprise Plugins",
+    text: "Expand the hapi ecosystem with access to enterprise plugins",
+    link: "/support"
+  },
+  4: {
+    bold: "Priority Support",
+    text: "Get the answers you need now with priority support with a hapi commercial license",
+    link: "/support"
+  },
+  5: {
+    bold: "Get Advanced Security Notifications",
+    text: "With a commercial license, you receive advanced notification of security threats before they are made public",
     link: "/support"
   }
 }
