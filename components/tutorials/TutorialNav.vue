@@ -3,6 +3,7 @@
     <div class="side-nav-wrapper">
       <div class="side-nav-inner-wrapper">
         <div class="side-nav-title">Tutorials</div>
+        <Ads />
         <div class="lang-wrapper">
           <div class="lang-text">Languages:</div>
           <select @change="onChange($event)" :value="getLanguage" class="tutorial-lang-select">
@@ -102,6 +103,7 @@
 
 <script>
 import SideFooter from "~/components/Footers/SideFooter.vue";
+import Ads from "~/components/Ads.vue";
 const page = require("../../static/lib/tutorials/");
 
 export default {
@@ -117,7 +119,8 @@ export default {
     }
   },
   components: {
-    SideFooter
+    SideFooter,
+    Ads
   }
 };
 </script>
