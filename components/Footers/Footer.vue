@@ -18,7 +18,7 @@
     </ul>
     <div class="footer-text-wrapper">
       <a class="netlify-link" href="https://www.netlify.com">
-        <img class="netlify" src="https://www.netlify.com/img/global/badges/netlify-dark.svg" />
+        <img class="netlify" src="https://www.netlify.com/img/global/badges/netlify-dark.svg" alt="netlify logo"/>
       </a>
       <div class="footer-text">&copy; 2012 - 2019 Sideway Inc.</div>
     </div>
