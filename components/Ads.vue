@@ -67,7 +67,7 @@ export default {
 }
 
 .ad-bold {
-  font-size: 1.7em;
+  font-size: 1.5em;
   color: $orange;
   margin: 0;
   width: 60%;
