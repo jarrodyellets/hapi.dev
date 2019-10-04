@@ -338,7 +338,7 @@ export default {
       } catch (err) {
         console.log(err.message);
       }
-    }
+    } 
 
     versionsArray = await versionsArray.sort((a, b) => Semver.compare(b, a));
 
