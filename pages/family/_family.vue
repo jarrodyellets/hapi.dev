@@ -120,6 +120,39 @@ export default {
       //Set TOC classes
       let anchors = document.querySelectorAll(".family-nav-select-wrapper a");
       let code = document.querySelectorAll(".family-nav-select-wrapper a code");
+      let headers = document.querySelectorAll("h1, h2, h3, h4, h5");
+      let nextUntil = function(elem) {
+        // Setup siblings array
+        let siblings = [];
+
+        // Get the next sibling element
+        elem = elem.nextElementSibling;
+
+        // As long as a sibling exists
+        while (elem) {
+          // If we've reached our match, bail
+          if (elem.matches("h1, h2, h3, h4, h5")) break;
+
+          // Otherwise, push it to the siblings array
+          siblings.push(elem);
+
+          // Get the next sibling element
+          elem = elem.nextElementSibling;
+        }
+
+        return siblings;
+      };
+
+      for (let head of headers) {
+        let wrapper = document.createElement('div');
+        wrapper.setAttribute("class", head.textContent)
+        let elements = nextUntil(head);
+        if (elements.length > 0) {
+          elements[0].before(wrapper);
+          elements.forEach(x => wrapper.append(x))
+        }
+
+      }
 
       for (let link of anchors) {
         link.classList.add("family-anchor");
@@ -298,6 +331,7 @@ export default {
       }
     };
     let moduleAPI = {};
+    let api;
     moduleAPI[params.family] = {
       menus: {},
       displays: {},
@@ -353,7 +387,7 @@ export default {
         }
 
         for (let apiVersion of versionsArray) {
-          const api = await $axios.$get(
+          api = await $axios.$get(
             "https://api.github.com/repos/hapijs/" +
               params.family +
               "/contents/API.md?ref=" +
