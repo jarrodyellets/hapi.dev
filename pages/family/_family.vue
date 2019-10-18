@@ -26,6 +26,7 @@ import FamilyNav from "~/components/family/FamilyNav.vue";
 import Install from "~/components/family/Install.vue";
 let Toc = require("markdown-toc");
 let Semver = require("semver");
+let DomParser = require("dom-parser");
 
 export default {
   components: {
@@ -144,14 +145,13 @@ export default {
       };
 
       for (let head of headers) {
-        let wrapper = document.createElement('div');
-        wrapper.setAttribute("class", head.textContent)
+        let wrapper = document.createElement("div");
+        wrapper.setAttribute("class", head.textContent);
         let elements = nextUntil(head);
         if (elements.length > 0) {
           elements[0].before(wrapper);
-          elements.forEach(x => wrapper.append(x))
+          elements.forEach(x => wrapper.append(x));
         }
-
       }
 
       for (let link of anchors) {
@@ -330,13 +330,17 @@ export default {
         authorization: "token " + process.env.GITHUB_TOKEN
       }
     };
+    let parser = new DomParser();
+    let heads;
     let moduleAPI = {};
     let api;
+    let apiTestHTML;
     moduleAPI[params.family] = {
       menus: {},
       displays: {},
       versions: {},
-      license: {}
+      license: {},
+      types: {}
     };
     let version = "";
     let license = "";
@@ -387,6 +391,7 @@ export default {
         }
 
         for (let apiVersion of versionsArray) {
+          moduleAPI[params.family].types[apiVersion] = {};
           api = await $axios.$get(
             "https://api.github.com/repos/hapijs/" +
               params.family +
@@ -422,6 +427,63 @@ export default {
               }
             }
           );
+
+          try {
+            let modules = await $axios.$get(
+              "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/modules",
+              options
+            );
+            for (let m of modules) {
+              let moduleHTML = await $axios.$get(
+                "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/modules/" +
+                  m.name,
+                options
+              );
+              let panel = parser
+                .parseFromString(moduleHTML)
+                .getElementsByClassName("tsd-panel");
+              moduleAPI[params.family].types[apiVersion][
+                m.name.substring(0, m.name.length - 5)
+              ] = await panel[0].innerHTML;
+            }
+
+            let interfaces = await $axios.$get(
+              "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/interfaces",
+              options
+            );
+            for (let i of interfaces) {
+              let interfaceHTML = await $axios.$get(
+                "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/interfaces/" +
+                  i.name,
+                options
+              );
+              let panel = parser
+                .parseFromString(interfaceHTML)
+                .getElementsByClassName("tsd-panel");
+              let panelHTML = "";
+              for (let j = 2; j < panel.length; ++j) {
+                panelHTML = panelHTML + panel[j].innerHTML;
+              }
+              moduleAPI[params.family].types[apiVersion][
+                i.name.substring(0, i.name.length - 5)
+              ] = await panelHTML;
+            }
+
+            let functions = await $axios.$get(
+              "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/index.html",
+              options
+            );
+            let panel = parser
+              .parseFromString(functions)
+              .getElementsByClassName("tsd-panel");
+            for (let j = 1; j < panel.length; ++j) {
+              heads = parser.parseFromString(panel[j].innerHTML).getElementsByTagName("a")
+              let title = heads[0].getAttribute('name')
+              moduleAPI[params.family].types[apiVersion][title] = await panel[j].innerHTML;
+            }
+          } catch {
+            continue;
+          }
           let apiString = await apiHTML.toString();
           let finalHtmlDisplay = await apiString.replace(/user-content-/g, "");
           moduleAPI[params.family].menus[apiVersion] = await finalMenu;
@@ -436,9 +498,10 @@ export default {
 
     versionsArray = await versionsArray.sort((a, b) => Semver.compare(b, a));
 
-    return { moduleAPI, version, versionsArray, license };
+    return { moduleAPI, version, versionsArray, license, apiTestHTML, heads };
   },
   created() {
+    console.log(this.moduleAPI)
     if (!this.$store.getters.loadModules.includes(this.$route.params.family)) {
       return this.$nuxt.error({ statusCode: 404 });
     }
