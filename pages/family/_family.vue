@@ -428,63 +428,102 @@ export default {
             }
           );
 
+          let read = await $axios.$get(
+            "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/modules/contain.md",
+            options
+          );
+
+          const testHTML = await $axios.$post(
+            "https://api.github.com/markdown",
+            {
+              text: read,
+              mode: "markdown"
+            },
+            {
+              headers: {
+                authorization: "token " + process.env.GITHUB_TOKEN
+              }
+            }
+          );
+
+          //Add Typescript Docs
           try {
             let modules = await $axios.$get(
               "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/modules",
               options
             );
             for (let m of modules) {
-              let moduleHTML = await $axios.$get(
+              let moduleMD = await $axios.$get(
                 "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/modules/" +
                   m.name,
                 options
               );
-              let panel = parser
-                .parseFromString(moduleHTML)
-                .getElementsByClassName("tsd-panel");
-              moduleAPI[params.family].types[apiVersion][
-                m.name.substring(0, m.name.length - 5)
-              ] = await panel[0].innerHTML;
-            }
-
-            let interfaces = await $axios.$get(
-              "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/interfaces",
-              options
-            );
-            for (let i of interfaces) {
-              let interfaceHTML = await $axios.$get(
+              let inter = await $axios.$get(
                 "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/interfaces/" +
-                  i.name,
+                  m.name.substring(0, m.name.length - 3) +
+                  ".options.md",
                 options
               );
-              let panel = parser
-                .parseFromString(interfaceHTML)
-                .getElementsByClassName("tsd-panel");
-              let panelHTML = "";
-              for (let j = 2; j < panel.length; ++j) {
-                panelHTML = panelHTML + panel[j].innerHTML;
-              }
+              let modSnippet = moduleMD.match(/##([\s\S]*?)(?=##)/gm);
+              const modHTML = await $axios.$post(
+                "https://api.github.com/markdown",
+                {
+                  text: modSnippet[0],
+                  mode: "markdown"
+                },
+                {
+                  headers: {
+                    authorization: "token " + process.env.GITHUB_TOKEN
+                  }
+                }
+              );
+              const interfaceHTML = await $axios.$post(
+                "https://api.github.com/markdown",
+                {
+                  text: inter,
+                  mode: "markdown"
+                },
+                {
+                  headers: {
+                    authorization: "token " + process.env.GITHUB_TOKEN
+                  }
+                }
+              );
+              let callable = parser
+                .parseFromString(modHTML)
+                .getElementsByClassName("Callable");
+              let interfacePanel = parser.parseFromString(interfaceHTML);
               moduleAPI[params.family].types[apiVersion][
-                i.name.substring(0, i.name.length - 5)
-              ] = await panelHTML;
+                m.name.substring(0, m.name.length - 3)
+              ] = modHTML + interfaceHTML;
             }
 
             let functions = await $axios.$get(
-              "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/index.html",
+              "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/README.md",
               options
             );
-            let panel = parser
-              .parseFromString(functions)
-              .getElementsByClassName("tsd-panel");
-            for (let j = 1; j < panel.length; ++j) {
-              heads = parser.parseFromString(panel[j].innerHTML).getElementsByTagName("a")
-              let title = heads[0].getAttribute('name')
-              moduleAPI[params.family].types[apiVersion][title] = await panel[j].innerHTML;
+            let functionSnippets = functions.match(/###([\s\S]*?)(?=###)/gm);
+            for (let f of functionSnippets) {
+              let title = f.match(/\###.+/g)[0].substring(5);
+              let functionNoHeader = f.replace(/\###.+/g, "")
+              const functionHTML = await $axios.$post(
+                "https://api.github.com/markdown",
+                {
+                  text: functionNoHeader,
+                  mode: "markdown"
+                },
+                {
+                  headers: {
+                    authorization: "token " + process.env.GITHUB_TOKEN
+                  }
+                }
+              );
+              moduleAPI[params.family].types[apiVersion][title] = await functionHTML
             }
           } catch {
             continue;
           }
-          let apiString = await apiHTML.toString();
+          let apiString = await moduleAPI.hoek.types["8.3.2"].flatten.toString();
           let finalHtmlDisplay = await apiString.replace(/user-content-/g, "");
           moduleAPI[params.family].menus[apiVersion] = await finalMenu;
           moduleAPI[params.family].displays[
@@ -501,7 +540,7 @@ export default {
     return { moduleAPI, version, versionsArray, license, apiTestHTML, heads };
   },
   created() {
-    console.log(this.moduleAPI)
+    console.log(this.moduleAPI);
     if (!this.$store.getters.loadModules.includes(this.$route.params.family)) {
       return this.$nuxt.error({ statusCode: 404 });
     }
@@ -532,6 +571,7 @@ export default {
 @import "../../assets/styles/main.scss";
 @import "../../assets/styles/api.scss";
 @import "../../assets/styles/markdown.scss";
+@import "../../assets/styles/family.scss";
 
 .family-title {
   margin: 20px 0 -16px 100px;
