@@ -146,11 +146,18 @@ export default {
 
       for (let head of headers) {
         let wrapper = document.createElement("div");
-        wrapper.setAttribute("class", head.textContent);
+        wrapper.setAttribute("class", "module-item-wrapper");
+        wrapper.setAttribute("id", head.innerText.replace(/\(.*\)/g, ""))
         let elements = nextUntil(head);
         if (elements.length > 0) {
           elements[0].before(wrapper);
           elements.forEach(x => wrapper.append(x));
+        }
+        let ul = document.querySelector("#" + head.innerText.replace(/\(.*\)/g, "")  + " ul")
+        if(ul) {
+          let parentClass = ul.parentNode.id
+          console.log(ul, parentClass)
+          ul.outerHTML = this.moduleAPI[this.$route.params.family].types[this.$route.query.v][parentClass]
         }
       }
 
@@ -464,7 +471,13 @@ export default {
                   ".options.md",
                 options
               );
-              let modSnippet = moduleMD.match(/##([\s\S]*?)(?=##)/gm);
+              inter = inter + "#"
+              let modSnippet = moduleMD.match(/\*\*([\s\S]*?)(?=##)/gm);
+              let interSnippet = inter.match(/\*\*([\s\S]*?)(?=#)/gm);
+              let finalInter = "";
+              for (let snippet of interSnippet) {
+                finalInter = finalInter + snippet
+              }
               const modHTML = await $axios.$post(
                 "https://api.github.com/markdown",
                 {
@@ -480,7 +493,7 @@ export default {
               const interfaceHTML = await $axios.$post(
                 "https://api.github.com/markdown",
                 {
-                  text: inter,
+                  text: finalInter,
                   mode: "markdown"
                 },
                 {
@@ -523,7 +536,7 @@ export default {
           } catch {
             continue;
           }
-          let apiString = await moduleAPI.hoek.types["8.3.2"].flatten.toString();
+          let apiString = await apiHTML.toString();
           let finalHtmlDisplay = await apiString.replace(/user-content-/g, "");
           moduleAPI[params.family].menus[apiVersion] = await finalMenu;
           moduleAPI[params.family].displays[
@@ -540,7 +553,6 @@ export default {
     return { moduleAPI, version, versionsArray, license, apiTestHTML, heads };
   },
   created() {
-    console.log(this.moduleAPI);
     if (!this.$store.getters.loadModules.includes(this.$route.params.family)) {
       return this.$nuxt.error({ statusCode: 404 });
     }
@@ -676,6 +688,10 @@ export default {
 
 .family-ul-display {
   display: block !important;
+}
+
+.module-item-wrapper table {
+  margin: 0;
 }
 
 h1 a {
