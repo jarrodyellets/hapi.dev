@@ -156,8 +156,11 @@ export default {
         let ul = document.querySelector("#" + head.innerText.replace(/\(.*\)/g, "")  + " ul")
         if(ul) {
           let parentClass = ul.parentNode.id
-          console.log(ul, parentClass)
-          ul.outerHTML = this.moduleAPI[this.$route.params.family].types[this.$route.query.v][parentClass]
+          ul.outerHTML = this.moduleAPI[this.$route.params.family].types[this.$route.query.v][parentClass.toLowerCase()]
+          let newAnchors = document.querySelectorAll("#" + parentClass + " a");
+          for (let a of newAnchors) {
+            a.outerHTML = "<span>" + a.innerText + "</span>";
+          }
         }
       }
 
@@ -476,12 +479,12 @@ export default {
               let interSnippet = inter.match(/\*\*([\s\S]*?)(?=#)/gm);
               let finalInter = "";
               for (let snippet of interSnippet) {
-                finalInter = finalInter + snippet
+                finalInter = finalInter + snippet.replace(/\*\*\`/gm, "").replace(/\`\*\*/gm, "").replace(/(\s\*)(?=\w)/gm, "`").replace(/(?<=\w)(\*$)/gm, "`");
               }
               const modHTML = await $axios.$post(
                 "https://api.github.com/markdown",
                 {
-                  text: modSnippet[0],
+                  text: modSnippet[0].replace(/▪/gm, ""),
                   mode: "markdown"
                 },
                 {
@@ -692,7 +695,27 @@ export default {
 
 .module-item-wrapper table {
   margin: 0;
+  border: 2px solid $dark-white;
 }
+
+.module-item-wrapper thead {
+  background-color: $off-white;
+  border-bottom: 1px solid $dark-white;
+}
+
+.module-item-wrapper th {
+  text-align: center;
+}
+
+.module-item-wrapper th, .module-item-wrapper td {
+  padding: 5px 15px;
+}
+
+.module-item-wrapper tr, .module-item-wrapper table code {
+  border: 1px solid $dark-white;
+}
+
+
 
 h1 a {
   display: block;
