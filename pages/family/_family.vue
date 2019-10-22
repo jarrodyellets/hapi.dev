@@ -470,7 +470,11 @@ export default {
               let interSnippet = inter.match(/\*\*([\s\S]*?)(?=#)/gm);
               let finalInter = "";
               for (let snippet of interSnippet) {
-                finalInter = finalInter + snippet.replace(/\*\*\`/gm, "").replace(/\`\*\*/gm, "").replace(/(\s\*)(?=\w)/gm, "`").replace(/(?<=\w)(\*$)/gm, "`");
+                let defaultValue = snippet.match(/(?<=\*\*`default`\*\*.)([^\s]+)/gm)
+                if (!defaultValue) {
+                  defaultValue = [null]
+                }
+                finalInter = finalInter + snippet.replace(/\*\*\`/gm, "").replace(/\`\*\*/gm, "").replace(/(\s\*)(?=\w)/gm, "`").replace(/(?<=\w)(\*$)/gm, "`").replace(/(?<=default)(.[^\s]+)/gm, ": `" + defaultValue[0] + "`");
               }
               const modHTML = await $axios.$post(
                 "https://api.github.com/markdown",
