@@ -144,22 +144,31 @@ export default {
         return siblings;
       };
 
-      for (let head of headers) {
-        let wrapper = document.createElement("div");
-        wrapper.setAttribute("class", "module-item-wrapper");
-        wrapper.setAttribute("id", head.innerText.replace(/\(.*\)/g, ""))
-        let elements = nextUntil(head);
-        if (elements.length > 0) {
-          elements[0].before(wrapper);
-          elements.forEach(x => wrapper.append(x));
-        }
-        let ul = document.querySelector("#" + head.innerText.replace(/\(.*\)/g, "")  + " ul")
-        if(ul) {
-          let parentClass = ul.parentNode.id
-          ul.outerHTML = this.moduleAPI[this.$route.params.family].types[this.$route.query.v][parentClass.toLowerCase()]
-          let newAnchors = document.querySelectorAll("#" + parentClass + " a");
-          for (let a of newAnchors) {
-            a.outerHTML = "<span>" + a.innerText + "</span>";
+      if (this.$data.name === "hoek" && this.getVersion === "8.3.2"){
+        for (let head of headers) {
+          let wrapper = document.createElement("div");
+          let id = head.innerText.replace(/\(.*\)/g, "").toLowerCase()
+          wrapper.setAttribute("class", "module-item-wrapper");
+          wrapper.setAttribute("id", id)
+          let elements = nextUntil(head);
+          if (elements.length > 0) {
+            elements[0].before(wrapper);
+            elements.forEach(x => wrapper.append(x));
+          }
+          let ul = document.querySelector("#" + id  + " ul")
+          if(id in this.moduleAPI[this.$route.params.family].types[this.getVersion]) {
+            if (document.querySelector("#" + id + " p")){
+              document.querySelector("#" + id + " p").outerHTML = this.moduleAPI[this.$route.params.family].types[this.getVersion][id]
+            } else {
+              wrapper.insertAdjacentHTML("afterbegin", this.moduleAPI[this.$route.params.family].types[this.getVersion][id])
+            }
+            if(ul) {
+              ul.outerHTML = ""
+            }
+            let newAnchors = document.querySelectorAll("#" + id + " a");
+            for (let a of newAnchors) {
+              a.outerHTML = "<span>" + a.innerText + "</span>";
+            }
           }
         }
       }
@@ -438,26 +447,8 @@ export default {
             }
           );
 
-          let read = await $axios.$get(
-            "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/modules/contain.md",
-            options
-          );
-
-          const testHTML = await $axios.$post(
-            "https://api.github.com/markdown",
-            {
-              text: read,
-              mode: "markdown"
-            },
-            {
-              headers: {
-                authorization: "token " + process.env.GITHUB_TOKEN
-              }
-            }
-          );
-
           //Add Typescript Docs
-          try {
+          if (params.family === 'hoek'){
             let modules = await $axios.$get(
               "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/modules",
               options
@@ -520,8 +511,8 @@ export default {
             );
             let functionSnippets = functions.match(/###([\s\S]*?)(?=###)/gm);
             for (let f of functionSnippets) {
-              let title = f.match(/\###.+/g)[0].substring(5);
-              let functionNoHeader = f.replace(/\###.+/g, "")
+              let title = f.match(/\###.+/g)[0].substring(5).toLowerCase();
+              let functionNoHeader = f.replace(/\###.+/g, "").replace(/▸/gm, "")
               const functionHTML = await $axios.$post(
                 "https://api.github.com/markdown",
                 {
@@ -536,8 +527,6 @@ export default {
               );
               moduleAPI[params.family].types[apiVersion][title] = await functionHTML
             }
-          } catch {
-            continue;
           }
           let apiString = await apiHTML.toString();
           let finalHtmlDisplay = await apiString.replace(/user-content-/g, "");
@@ -562,6 +551,7 @@ export default {
     let version = this.versionsArray.includes(this.$route.query.v)
       ? this.$route.query.v
       : this.versionsArray[0];
+    this.$data.name = this.$route.params.family
     this.$store.commit("setDisplay", "family");
     this.$store.commit("setVersion", version);
     (!this.$route.query.v ||
