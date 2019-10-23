@@ -169,6 +169,10 @@ export default {
             for (let a of newAnchors) {
               a.outerHTML = "<span>" + a.innerText + "</span>";
             }
+            let newCodeBlock = document.querySelector("#" + id + "> p")
+            console.log(newCodeBlock.innerText)
+            newCodeBlock.outerHTML = "<pre class=method></pre>"
+            document.querySelector("#" + id + " > .method").innerText = newCodeBlock.innerText
           }
         }
       }
@@ -467,6 +471,8 @@ export default {
               );
               inter = inter + "#"
               let modSnippet = moduleMD.match(/\*\*([\s\S]*?)(?=##)/gm);
+              let method = modSnippet[0].match(/\*\*([\s\S]*?)(?=\n)/);
+              method = method[0].replace(/[`\*.]/g, "")
               let interSnippet = inter.match(/\*\*([\s\S]*?)(?=#)/gm);
               let finalInter = "";
               for (let snippet of interSnippet) {
@@ -474,12 +480,12 @@ export default {
                 if (!defaultValue) {
                   defaultValue = [null]
                 }
-                finalInter = finalInter + snippet.replace(/\*\*\`/gm, "").replace(/\`\*\*/gm, "").replace(/(\s\*)(?=\w)/gm, "`").replace(/(?<=\w)(\*$)/gm, "`").replace(/(?<=default)(.[^\s]+)/gm, ": `" + defaultValue[0] + "`");
+                finalInter = finalInter + snippet.replace(/\*\*\`/gm, "").replace(/\`\*\*/gm, "").replace(/(\s\*)(?=\w)/gm, "  `").replace(/(?<=\w)(\*$)/gm, "`").replace(/(?<=default)(.[^\s]+)/gm, ": `" + defaultValue[0] + "`");
               }
               const modHTML = await $axios.$post(
                 "https://api.github.com/markdown",
                 {
-                  text: modSnippet[0].replace(/▪/gm, ""),
+                  text: modSnippet[0].replace(/▪/gm, "").replace(/\*\*([\s\S]*?)(?=\n)/, method).replace(/</, "&lt;").replace(/>/, "&gt;"),
                   mode: "markdown"
                 },
                 {
@@ -687,6 +693,10 @@ export default {
   display: block !important;
 }
 
+.module-item-wrapper {
+  padding-top: 1em;
+}
+
 .module-item-wrapper table {
   margin: 0;
   border: 2px solid $dark-white;
@@ -703,10 +713,29 @@ export default {
 
 .module-item-wrapper th, .module-item-wrapper td {
   padding: 5px 15px;
+  vertical-align: middle;
 }
 
 .module-item-wrapper tr, .module-item-wrapper table code {
   border: 1px solid $dark-white;
+}
+
+.module-item-wrapper > p {
+  font-size: 1.1em;
+}
+
+.module-item-wrapper code {
+  font-family: 'inconsolata', menlo, consolas, monospace;
+  padding: 0.2rem 0.33rem;
+  color: #6f6f6f;
+  background-color: #f3f3f3;
+  border: 1px solid #ddd;
+}
+
+hr {
+  height: 1px;
+  width: 200px;
+  background-color: $dark-white;
 }
 
 
