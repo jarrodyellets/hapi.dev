@@ -143,7 +143,8 @@ export default {
 
         return siblings;
       };
-
+      
+      //Set TS doc classes
       if (this.$data.name === "hoek" && this.getVersion === "8.3.2"){
         for (let head of headers) {
           let wrapper = document.createElement("div");
@@ -169,10 +170,6 @@ export default {
             for (let a of newAnchors) {
               a.outerHTML = "<span>" + a.innerText + "</span>";
             }
-            let newCodeBlock = document.querySelector("#" + id + "> p")
-            console.log(newCodeBlock.innerText)
-            newCodeBlock.outerHTML = "<pre class=method></pre>"
-            document.querySelector("#" + id + " > .method").innerText = newCodeBlock.innerText
           }
         }
       }
@@ -470,9 +467,18 @@ export default {
                 options
               );
               inter = inter + "#"
-              let modSnippet = moduleMD.match(/\*\*([\s\S]*?)(?=##)/gm);
-              let method = modSnippet[0].match(/\*\*([\s\S]*?)(?=\n)/);
-              method = method[0].replace(/[`\*.]/g, "")
+              let modSnippet = moduleMD.match(/▸([\s\S]*?)(?=##)/gm);
+              let methods = modSnippet[0].match(/▸.*\s*:\s.*/gm);
+              let finalMethods = modSnippet[0];
+              let methodClassStart= "<pre class='method'>"
+              let methodClassEnd= "</pre>"
+              for (let method of methods){
+                let formattedMethod = method.replace(/[▸`\*.]/g, "").replace(/</, "&lt;").replace(/>/, "&gt;")
+                let linkText = formattedMethod.match(/(?<=\[)[^\]](.*)(?=])/);
+                formattedMethod = methodClassStart.concat(formattedMethod).replace(/\[[^\]](.*?)\)/, linkText[0]) + methodClassEnd
+                finalMethods = finalMethods.replace(method, formattedMethod)
+              }
+              
               let interSnippet = inter.match(/\*\*([\s\S]*?)(?=#)/gm);
               let finalInter = "";
               for (let snippet of interSnippet) {
@@ -485,7 +491,7 @@ export default {
               const modHTML = await $axios.$post(
                 "https://api.github.com/markdown",
                 {
-                  text: modSnippet[0].replace(/▪/gm, "").replace(/\*\*([\s\S]*?)(?=\n)/, method).replace(/</, "&lt;").replace(/>/, "&gt;"),
+                  text: finalMethods.replace(/▪/gm, ""),
                   mode: "markdown"
                 },
                 {
