@@ -528,7 +528,12 @@ export default {
             let functionSnippets = functions.match(/###([\s\S]*?)(?=###)/gm);
             for (let f of functionSnippets) {
               let title = f.match(/\###.+/g)[0].substring(5).toLowerCase();
-              let functionNoHeader = f.replace(/\###.+/g, "").replace(/▸/gm, "")
+              let methodClassStart= "<pre class='method'>"
+              let methodClassEnd= "</pre>"
+              let functionMethod = f.match(/▸.*\s*:\s.*/)
+              functionMethod = functionMethod[0].replace(/▸.*\s*:\s.*/)
+              let functionNoHeader = f.replace(/\###.+/g, "").replace(/▸/gm, "").replace(/[▸`\*.]/g, "").replace(/</, "&lt;").replace(/>/, "&gt;")
+              functionNoHeader = methodClassStart.concat(functionNoHeader) + methodClassEnd
               const functionHTML = await $axios.$post(
                 "https://api.github.com/markdown",
                 {
