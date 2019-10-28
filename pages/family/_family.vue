@@ -158,7 +158,7 @@ export default {
           }
           let ul = document.querySelector("#" + id  + " ul")
           if(id in this.moduleAPI[this.$route.params.family].types[this.getVersion]) {
-            if (document.querySelector("#" + id + " p")){
+            if (document.querySelector("#" + id + " p") && !document.querySelector("#" + id + " p").previousElementSibling){
               document.querySelector("#" + id + " p").outerHTML = this.moduleAPI[this.$route.params.family].types[this.getVersion][id]
             } else {
               wrapper.insertAdjacentHTML("afterbegin", this.moduleAPI[this.$route.params.family].types[this.getVersion][id])
@@ -525,15 +525,21 @@ export default {
               "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/README.md",
               options
             );
-            let functionSnippets = functions.match(/###([\s\S]*?)(?=###)/gm);
+            functions = functions + "###"
+            let functionSnippets = functions.match(/###\W\W[a-z]([\s\S]*?)(?=###)/gm);
             for (let f of functionSnippets) {
               let title = f.match(/\###.+/g)[0].substring(5).toLowerCase();
               let methodClassStart= "<pre class='method'>"
               let methodClassEnd= "</pre>"
-              let functionMethod = f.match(/▸.*\s*:\s.*/)
-              functionMethod = functionMethod[0].replace(/▸.*\s*:\s.*/)
-              let functionNoHeader = f.replace(/\###.+/g, "").replace(/▸/gm, "").replace(/[▸`\*.]/g, "").replace(/</, "&lt;").replace(/>/, "&gt;")
-              functionNoHeader = methodClassStart.concat(functionNoHeader) + methodClassEnd
+              let functionMethod = f.match(/▸.*\s*:\s.*/gm)
+              let functionNoHeader = f.replace(/\###.+/g, "");
+              console.log(functionMethod)
+              for (let i = 0; i < functionMethod.length; ++i){
+                console.log("HELLO" + i, functionMethod[i])
+                let formatMethod = functionMethod[i].replace(/▸/gm, "").replace(/[▸`\*.]/g, "").replace(/</, "&lt;").replace(/>/, "&gt;");
+                let wrappedFunction = methodClassStart.concat(formatMethod) + methodClassEnd
+                functionNoHeader = functionNoHeader.replace(functionMethod[i], wrappedFunction)
+              }
               const functionHTML = await $axios.$post(
                 "https://api.github.com/markdown",
                 {
