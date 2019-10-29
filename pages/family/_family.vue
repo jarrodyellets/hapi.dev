@@ -146,9 +146,10 @@ export default {
 
       //Set TS doc classes
       if (this.moduleAPI[this.$route.params.family].types[this.getVersion]) {
+        console.log(headers);
         for (let head of headers) {
           let wrapper = document.createElement("div");
-          let id = head.innerText.replace(/\(.*\)/g, "").toLowerCase();
+          let id = head.innerText.replace(/\(.*\)/g, "").replace(/\s/gm, "").replace(/\./gm, "").toLowerCase().replace(this.$route.params.family, "");
           wrapper.setAttribute("class", "module-item-wrapper");
           wrapper.setAttribute("id", id);
           let elements = nextUntil(head);
@@ -490,6 +491,7 @@ export default {
                   moduleAPI[params.family].versions[apiVersion],
                 options
               );
+              console.log(m.name)
               let modSnippet = moduleMD.match(/▸([\s\S]*?)(?=##)/gm);
               let methods = modSnippet[0].match(/▸.*\s*:\s.*/gm);
               let finalMethods = modSnippet[0];
@@ -541,6 +543,7 @@ export default {
                   moduleAPI[params.family].versions[apiVersion],
                 options
               );
+              console.log(interfaceObject.name)
               inter = inter + "#";
               let interSnippet = inter.match(/\*\*([\s\S]*?)(?=#)/gm);
               let finalInter = "";
