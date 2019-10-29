@@ -143,28 +143,43 @@ export default {
 
         return siblings;
       };
-      
+
       //Set TS doc classes
-      if (this.$data.name === "hoek" && this.getVersion === "8.3.2"){
+      if (this.moduleAPI[this.$route.params.family].types[this.getVersion]) {
         for (let head of headers) {
           let wrapper = document.createElement("div");
-          let id = head.innerText.replace(/\(.*\)/g, "").toLowerCase()
+          let id = head.innerText.replace(/\(.*\)/g, "").toLowerCase();
           wrapper.setAttribute("class", "module-item-wrapper");
-          wrapper.setAttribute("id", id)
+          wrapper.setAttribute("id", id);
           let elements = nextUntil(head);
           if (elements.length > 0) {
             elements[0].before(wrapper);
             elements.forEach(x => wrapper.append(x));
           }
-          let ul = document.querySelector("#" + id  + " ul")
-          if(id in this.moduleAPI[this.$route.params.family].types[this.getVersion]) {
-            if (document.querySelector("#" + id + " p") && !document.querySelector("#" + id + " p").previousElementSibling){
-              document.querySelector("#" + id + " p").outerHTML = this.moduleAPI[this.$route.params.family].types[this.getVersion][id]
+          let ul = document.querySelector("#" + id + " ul");
+          if (
+            id in
+            this.moduleAPI[this.$route.params.family].types[this.getVersion]
+          ) {
+            if (
+              document.querySelector("#" + id + " p") &&
+              !document.querySelector("#" + id + " p").previousElementSibling
+            ) {
+              document.querySelector(
+                "#" + id + " p"
+              ).outerHTML = this.moduleAPI[this.$route.params.family].types[
+                this.getVersion
+              ][id];
             } else {
-              wrapper.insertAdjacentHTML("afterbegin", this.moduleAPI[this.$route.params.family].types[this.getVersion][id])
+              wrapper.insertAdjacentHTML(
+                "afterbegin",
+                this.moduleAPI[this.$route.params.family].types[
+                  this.getVersion
+                ][id]
+              );
             }
-            if(ul) {
-              ul.outerHTML = ""
+            if (ul) {
+              ul.outerHTML = "";
             }
             let newAnchors = document.querySelectorAll("#" + id + " a");
             for (let a of newAnchors) {
@@ -355,15 +370,14 @@ export default {
     let moduleAPI = {};
     let api;
     let apiTestHTML;
+    const types = ["hoek"];
     moduleAPI[params.family] = {
       menus: {},
       displays: {},
       versions: {},
-      license: {},
       types: {}
     };
     let version = "";
-    let license = "";
     let versionsArray = [];
 
     if (store.getters.loadModules.includes(params.family)) {
@@ -407,11 +421,13 @@ export default {
                 branch.name;
               await versionsArray.push(apiPackage.version);
             }
+            if (apiPackage.types) {
+              moduleAPI[params.family].types[apiPackage.version] = {};
+            }
           }
         }
 
         for (let apiVersion of versionsArray) {
-          moduleAPI[params.family].types[apiVersion] = {};
           api = await $axios.$get(
             "https://api.github.com/repos/hapijs/" +
               params.family +
@@ -449,44 +465,47 @@ export default {
           );
 
           //Add Typescript Docs
-          if (params.family === 'hoek'){
+          if (
+            store.getters.loadTypes.includes(params.family) &&
+            (moduleAPI[params.family].types[apiVersion] ||
+              moduleAPI[params.family].versions[apiVersion] === "master")
+          ) {
+            moduleAPI[params.family].types[apiVersion] = {};
+
+            // Get Modules
             let modules = await $axios.$get(
-              "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/modules",
+              "https://api.github.com/repos/jarrodyellets/" +
+                params.family +
+                "/contents/docs/modules?ref=" +
+                moduleAPI[params.family].versions[apiVersion],
               options
             );
             for (let m of modules) {
               let moduleMD = await $axios.$get(
-                "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/modules/" +
-                  m.name,
+                "https://api.github.com/repos/jarrodyellets/" +
+                  params.family +
+                  "/contents/docs/modules/" +
+                  m.name +
+                  "?ref=" +
+                  moduleAPI[params.family].versions[apiVersion],
                 options
               );
-              let inter = await $axios.$get(
-                "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/interfaces/" +
-                  m.name.substring(0, m.name.length - 3) +
-                  ".options.md",
-                options
-              );
-              inter = inter + "#"
               let modSnippet = moduleMD.match(/▸([\s\S]*?)(?=##)/gm);
               let methods = modSnippet[0].match(/▸.*\s*:\s.*/gm);
               let finalMethods = modSnippet[0];
-              let methodClassStart= "<pre class='method'>"
-              let methodClassEnd= "</pre>"
-              for (let method of methods){
-                let formattedMethod = method.replace(/[▸`\*.]/g, "").replace(/</, "&lt;").replace(/>/, "&gt;")
+              let methodClassStart = "<pre class='method'>";
+              let methodClassEnd = "</pre>";
+              for (let method of methods) {
+                let formattedMethod = method
+                  .replace(/[▸`\*.]/g, "")
+                  .replace(/</, "&lt;")
+                  .replace(/>/, "&gt;");
                 let linkText = formattedMethod.match(/(?<=\[)[^\]](.*)(?=])/);
-                formattedMethod = methodClassStart.concat(formattedMethod).replace(/\[[^\]](.*?)\)/, linkText[0]) + methodClassEnd
-                finalMethods = finalMethods.replace(method, formattedMethod)
-              }
-              
-              let interSnippet = inter.match(/\*\*([\s\S]*?)(?=#)/gm);
-              let finalInter = "";
-              for (let snippet of interSnippet) {
-                let defaultValue = snippet.match(/(?<=\*\*`default`\*\*.)([^\s]+)/gm)
-                if (!defaultValue) {
-                  defaultValue = [null]
-                }
-                finalInter = finalInter + snippet.replace(/\*\*\`/gm, "").replace(/\`\*\*/gm, "").replace(/(\s\*)(?=\w)/gm, "  `").replace(/(?<=\w)(\*$)/gm, "`").replace(/(?<=default)(.[^\s]+)/gm, ": `" + defaultValue[0] + "`");
+                formattedMethod =
+                  methodClassStart
+                    .concat(formattedMethod)
+                    .replace(/\[[^\]](.*?)\)/, linkText[0]) + methodClassEnd;
+                finalMethods = finalMethods.replace(method, formattedMethod);
               }
               const modHTML = await $axios.$post(
                 "https://api.github.com/markdown",
@@ -500,6 +519,50 @@ export default {
                   }
                 }
               );
+              moduleAPI[params.family].types[apiVersion][m.name.substring(0, m.name.length - 3)] = modHTML;
+            }
+
+            //Get Interfaces
+            let interfaces = await $axios.$get(
+              "https://api.github.com/repos/jarrodyellets/" +
+                params.family +
+                "/contents/docs/interfaces?ref=" +
+                moduleAPI[params.family].versions[apiVersion],
+              options
+            );
+            for (let interfaceObject of interfaces) {
+              console.log(interfaceObject.name)
+              let inter = await $axios.$get(
+                "https://api.github.com/repos/jarrodyellets/" +
+                  params.family +
+                  "/contents/docs/interfaces/" +
+                  interfaceObject.name +
+                  "?ref=" +
+                  moduleAPI[params.family].versions[apiVersion],
+                options
+              );
+              inter = inter + "#";
+              let interSnippet = inter.match(/\*\*([\s\S]*?)(?=#)/gm);
+              let finalInter = "";
+              for (let snippet of interSnippet) {
+                let defaultValue = snippet.match(
+                  /(?<=\*\*`default`\*\*.)([^\s]+)/gm
+                );
+                if (!defaultValue) {
+                  defaultValue = [null];
+                }
+                finalInter =
+                  finalInter +
+                  snippet
+                    .replace(/\*\*\`/gm, "")
+                    .replace(/\`\*\*/gm, "")
+                    .replace(/(\s\*)(?=\w)/gm, "  `")
+                    .replace(/(?<=\w)(\*$)/gm, "`")
+                    .replace(
+                      /(?<=default)(.[^\s]+)/gm,
+                      ": `" + defaultValue[0] + "`"
+                    );
+              }
               const interfaceHTML = await $axios.$post(
                 "https://api.github.com/markdown",
                 {
@@ -512,33 +575,48 @@ export default {
                   }
                 }
               );
-              let callable = parser
-                .parseFromString(modHTML)
-                .getElementsByClassName("Callable");
-              let interfacePanel = parser.parseFromString(interfaceHTML);
+              //Add interfaces to modules
               moduleAPI[params.family].types[apiVersion][
-                m.name.substring(0, m.name.length - 3)
-              ] = modHTML + interfaceHTML;
+                interfaceObject.name.substring(0, interfaceObject.name.length - 11)
+              ] =
+                moduleAPI[params.family].types[apiVersion][
+                  interfaceObject.name.substring(0, interfaceObject.name.length - 11)
+                ] + interfaceHTML;
             }
 
+            //Get Functions
             let functions = await $axios.$get(
-              "https://api.github.com/repos/jarrodyellets/hoek/contents/docs/README.md",
+              "https://api.github.com/repos/jarrodyellets/" +
+                params.family +
+                "/contents/docs/README.md?ref=" +
+                moduleAPI[params.family].versions[apiVersion],
               options
             );
-            functions = functions + "###"
-            let functionSnippets = functions.match(/###\W\W[a-z]([\s\S]*?)(?=###)/gm);
+            functions = functions + "###";
+            let functionSnippets = functions.match(
+              /###\W\W[a-z]([\s\S]*?)(?=###)/gm
+            );
             for (let f of functionSnippets) {
-              let title = f.match(/\###.+/g)[0].substring(5).toLowerCase();
-              let methodClassStart= "<pre class='method'>"
-              let methodClassEnd= "</pre>"
-              let functionMethod = f.match(/▸.*\s*:\s.*/gm)
+              let title = f
+                .match(/\###.+/g)[0]
+                .substring(5)
+                .toLowerCase();
+              let methodClassStart = "<pre class='method'>";
+              let methodClassEnd = "</pre>";
+              let functionMethod = f.match(/▸.*\s*:\s.*/gm);
               let functionNoHeader = f.replace(/\###.+/g, "");
-              console.log(functionMethod)
-              for (let i = 0; i < functionMethod.length; ++i){
-                console.log("HELLO" + i, functionMethod[i])
-                let formatMethod = functionMethod[i].replace(/▸/gm, "").replace(/[▸`\*.]/g, "").replace(/</, "&lt;").replace(/>/, "&gt;");
-                let wrappedFunction = methodClassStart.concat(formatMethod) + methodClassEnd
-                functionNoHeader = functionNoHeader.replace(functionMethod[i], wrappedFunction)
+              for (let i = 0; i < functionMethod.length; ++i) {
+                let formatMethod = functionMethod[i]
+                  .replace(/▸/gm, "")
+                  .replace(/[▸`\*.]/g, "")
+                  .replace(/</, "&lt;")
+                  .replace(/>/, "&gt;");
+                let wrappedFunction =
+                  methodClassStart.concat(formatMethod) + methodClassEnd;
+                functionNoHeader = functionNoHeader.replace(
+                  functionMethod[i],
+                  wrappedFunction
+                );
               }
               const functionHTML = await $axios.$post(
                 "https://api.github.com/markdown",
@@ -552,9 +630,13 @@ export default {
                   }
                 }
               );
-              moduleAPI[params.family].types[apiVersion][title] = await functionHTML
+              moduleAPI[params.family].types[apiVersion][
+                title
+              ] = await functionHTML;
             }
           }
+
+          //Set final API display and menu
           let apiString = await apiHTML.toString();
           let finalHtmlDisplay = await apiString.replace(/user-content-/g, "");
           moduleAPI[params.family].menus[apiVersion] = await finalMenu;
@@ -569,16 +651,17 @@ export default {
 
     versionsArray = await versionsArray.sort((a, b) => Semver.compare(b, a));
 
-    return { moduleAPI, version, versionsArray, license, apiTestHTML, heads };
+    return { moduleAPI, version, versionsArray };
   },
   created() {
+    console.log(this.moduleAPI);
     if (!this.$store.getters.loadModules.includes(this.$route.params.family)) {
       return this.$nuxt.error({ statusCode: 404 });
     }
     let version = this.versionsArray.includes(this.$route.query.v)
       ? this.$route.query.v
       : this.versionsArray[0];
-    this.$data.name = this.$route.params.family
+    this.$data.name = this.$route.params.family;
     this.$store.commit("setDisplay", "family");
     this.$store.commit("setVersion", version);
     (!this.$route.query.v ||
@@ -728,12 +811,14 @@ export default {
   text-align: center;
 }
 
-.module-item-wrapper th, .module-item-wrapper td {
+.module-item-wrapper th,
+.module-item-wrapper td {
   padding: 5px 15px;
   vertical-align: middle;
 }
 
-.module-item-wrapper tr, .module-item-wrapper table code {
+.module-item-wrapper tr,
+.module-item-wrapper table code {
   border: 1px solid $dark-white;
 }
 
@@ -742,7 +827,7 @@ export default {
 }
 
 .module-item-wrapper code {
-  font-family: 'inconsolata', menlo, consolas, monospace;
+  font-family: "inconsolata", menlo, consolas, monospace;
   padding: 0.2rem 0.33rem;
   color: #6f6f6f;
   background-color: #f3f3f3;
@@ -754,8 +839,6 @@ hr {
   width: 200px;
   background-color: $dark-white;
 }
-
-
 
 h1 a {
   display: block;

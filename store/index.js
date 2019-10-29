@@ -5,6 +5,7 @@ export const state = () => ({
   display: "home",
   language: "en_US",
   version: "",
+  types: ["hoek"],
   modules: [
     "accept",
     "address",
@@ -86,6 +87,9 @@ export const getters = {
   },
   loadVersion (state) {
     return state.version
+  },
+  loadTypes (state) {
+    return state.types
   },
   loadModules (state) {
     return state.modules
