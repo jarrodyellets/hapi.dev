@@ -491,37 +491,38 @@ export default {
                   moduleAPI[params.family].versions[apiVersion],
                 options
               );
-              console.log(m.name)
               let modSnippet = moduleMD.match(/▸([\s\S]*?)(?=##)/gm);
-              let methods = modSnippet[0].match(/▸.*\s*:\s.*/gm);
-              let finalMethods = modSnippet[0];
-              let methodClassStart = "<pre class='method'>";
-              let methodClassEnd = "</pre>";
-              for (let method of methods) {
-                let formattedMethod = method
-                  .replace(/[▸`\*.]/g, "")
-                  .replace(/</, "&lt;")
-                  .replace(/>/, "&gt;");
-                let linkText = formattedMethod.match(/(?<=\[)[^\]](.*)(?=])/);
-                formattedMethod =
-                  methodClassStart
-                    .concat(formattedMethod)
-                    .replace(/\[[^\]](.*?)\)/, linkText[0]) + methodClassEnd;
-                finalMethods = finalMethods.replace(method, formattedMethod);
-              }
-              const modHTML = await $axios.$post(
-                "https://api.github.com/markdown",
-                {
-                  text: finalMethods.replace(/▪/gm, ""),
-                  mode: "markdown"
-                },
-                {
-                  headers: {
-                    authorization: "token " + process.env.GITHUB_TOKEN
-                  }
+              if (modSnippet){
+                let methods = modSnippet[0].match(/▸.*\s*:\s.*/gm);
+                let finalMethods = modSnippet[0];
+                let methodClassStart = "<pre class='method'>";
+                let methodClassEnd = "</pre>";
+                for (let method of methods) {
+                  let formattedMethod = method
+                    .replace(/[▸`\*.]/g, "")
+                    .replace(/</, "&lt;")
+                    .replace(/>/, "&gt;");
+                  let linkText = formattedMethod.match(/(?<=\[)[^\]](.*)(?=])/);
+                  formattedMethod =
+                    methodClassStart
+                      .concat(formattedMethod)
+                      .replace(/\[[^\]](.*?)\)/, linkText[0]) + methodClassEnd;
+                  finalMethods = finalMethods.replace(method, formattedMethod);
                 }
-              );
-              moduleAPI[params.family].types[apiVersion][m.name.substring(0, m.name.length - 3)] = modHTML;
+                const modHTML = await $axios.$post(
+                  "https://api.github.com/markdown",
+                  {
+                    text: finalMethods.replace(/(?<=▪\W)(\*\*)/gm, "").replace(/(?<=▪\W\w*)(\*\*)/gm, "").replace(/▪/gm, ""),
+                    mode: "markdown"
+                  },
+                  {
+                    headers: {
+                      authorization: "token " + process.env.GITHUB_TOKEN
+                    }
+                  }
+                );
+                moduleAPI[params.family].types[apiVersion][m.name.substring(0, m.name.length - 3)] = modHTML;
+              }
             }
 
             //Get Interfaces
@@ -533,7 +534,6 @@ export default {
               options
             );
             for (let interfaceObject of interfaces) {
-              console.log(interfaceObject.name)
               let inter = await $axios.$get(
                 "https://api.github.com/repos/jarrodyellets/" +
                   params.family +
@@ -543,7 +543,6 @@ export default {
                   moduleAPI[params.family].versions[apiVersion],
                 options
               );
-              console.log(interfaceObject.name)
               inter = inter + "#";
               let interSnippet = inter.match(/\*\*([\s\S]*?)(?=#)/gm);
               let finalInter = "";
@@ -607,7 +606,7 @@ export default {
               let methodClassStart = "<pre class='method'>";
               let methodClassEnd = "</pre>";
               let functionMethod = f.match(/▸.*\s*:\s.*/gm);
-              let functionNoHeader = f.replace(/\###.+/g, "");
+              let functionNoHeader = f.replace(/\###.+/g, "").replace(/(?<=▪\W)(\*\*)/gm, "").replace(/(?<=▪\W\w*)(\*\*)/gm, "").replace(/▪/gm, "");
               for (let i = 0; i < functionMethod.length; ++i) {
                 let formatMethod = functionMethod[i]
                   .replace(/▸/gm, "")
@@ -657,7 +656,6 @@ export default {
     return { moduleAPI, version, versionsArray };
   },
   created() {
-    console.log(this.moduleAPI);
     if (!this.$store.getters.loadModules.includes(this.$route.params.family)) {
       return this.$nuxt.error({ statusCode: 404 });
     }
