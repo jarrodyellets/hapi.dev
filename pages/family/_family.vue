@@ -598,43 +598,45 @@ export default {
             let functionSnippets = functions.match(
               /###\W\W[a-z]([\s\S]*?)(?=###)/gm
             );
-            for (let f of functionSnippets) {
-              let title = f
-                .match(/\###.+/g)[0]
-                .substring(5)
-                .toLowerCase();
-              let methodClassStart = "<pre class='method'>";
-              let methodClassEnd = "</pre>";
-              let functionMethod = f.match(/▸.*\s*:\s.*/gm);
-              let functionNoHeader = f.replace(/\###.+/g, "").replace(/(?<=▪\W)(\*\*)/gm, "").replace(/(?<=▪\W\w*)(\*\*)/gm, "").replace(/▪/gm, "");
-              for (let i = 0; i < functionMethod.length; ++i) {
-                let formatMethod = functionMethod[i]
-                  .replace(/▸/gm, "")
-                  .replace(/[▸`\*.]/g, "")
-                  .replace(/</, "&lt;")
-                  .replace(/>/, "&gt;");
-                let wrappedFunction =
-                  methodClassStart.concat(formatMethod) + methodClassEnd;
-                functionNoHeader = functionNoHeader.replace(
-                  functionMethod[i],
-                  wrappedFunction
-                );
-              }
-              const functionHTML = await $axios.$post(
-                "https://api.github.com/markdown",
-                {
-                  text: functionNoHeader,
-                  mode: "markdown"
-                },
-                {
-                  headers: {
-                    authorization: "token " + process.env.GITHUB_TOKEN
-                  }
+            if (functionSnippets) {
+              for (let f of functionSnippets) {
+                let title = f
+                  .match(/\###.+/g)[0]
+                  .substring(5)
+                  .toLowerCase();
+                let methodClassStart = "<pre class='method'>";
+                let methodClassEnd = "</pre>";
+                let functionMethod = f.match(/▸.*\s*:\s.*/gm);
+                let functionNoHeader = f.replace(/\###.+/g, "").replace(/(?<=▪\W)(\*\*)/gm, "").replace(/(?<=▪\W\w*)(\*\*)/gm, "").replace(/▪/gm, "");
+                for (let i = 0; i < functionMethod.length; ++i) {
+                  let formatMethod = functionMethod[i]
+                    .replace(/▸/gm, "")
+                    .replace(/[▸`\*.]/g, "")
+                    .replace(/</, "&lt;")
+                    .replace(/>/, "&gt;");
+                  let wrappedFunction =
+                    methodClassStart.concat(formatMethod) + methodClassEnd;
+                  functionNoHeader = functionNoHeader.replace(
+                    functionMethod[i],
+                    wrappedFunction
+                  );
                 }
-              );
-              moduleAPI[params.family].types[apiVersion][
-                title
-              ] = await functionHTML;
+                const functionHTML = await $axios.$post(
+                  "https://api.github.com/markdown",
+                  {
+                    text: functionNoHeader,
+                    mode: "markdown"
+                  },
+                  {
+                    headers: {
+                      authorization: "token " + process.env.GITHUB_TOKEN
+                    }
+                  }
+                );
+                moduleAPI[params.family].types[apiVersion][
+                  title
+                ] = await functionHTML;
+              }
             }
           }
 
@@ -656,6 +658,7 @@ export default {
     return { moduleAPI, version, versionsArray };
   },
   created() {
+    console.log(this.moduleAPI)
     if (!this.$store.getters.loadModules.includes(this.$route.params.family)) {
       return this.$nuxt.error({ statusCode: 404 });
     }
