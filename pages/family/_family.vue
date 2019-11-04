@@ -658,7 +658,7 @@ export default {
     return { moduleAPI, version, versionsArray };
   },
   created() {
-    console.log(this.moduleAPI)
+
     if (!this.$store.getters.loadModules.includes(this.$route.params.family)) {
       return this.$nuxt.error({ statusCode: 404 });
     }

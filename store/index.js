@@ -5,7 +5,7 @@ export const state = () => ({
   display: "home",
   language: "en_US",
   version: "",
-  types: ["boom", "hoek"],
+  types: ["boom", "hoek", "wreck"],
   modules: [
     "accept",
     "address",
