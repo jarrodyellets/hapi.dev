@@ -146,10 +146,9 @@ export default {
 
       //Set TS doc classes
       if (this.moduleAPI[this.$route.params.family].types[this.getVersion]) {
-        console.log(headers);
         for (let head of headers) {
           let wrapper = document.createElement("div");
-          let id = head.innerText.replace(/\(.*\)/g, "").replace(/\s/gm, "").replace(/\./gm, "").toLowerCase().replace(this.$route.params.family, "");
+          let id = head.innerText.replace(/\(.*\)/g, "").replace(/\s/gm, "").replace(/\./gm, "").replace("?", "").replace("await", "").toLowerCase().replace(this.$route.params.family, "");
           wrapper.setAttribute("class", "module-item-wrapper");
           wrapper.setAttribute("id", id);
           let elements = nextUntil(head);
@@ -383,30 +382,13 @@ export default {
 
     if (store.getters.loadModules.includes(params.family)) {
       try {
-        let milestones = await $axios.$get(
-          "https://api.github.com/repos/hapijs/" +
-            params.family +
-            "/milestones?state=closed&per_page=100&direction=desc",
-          options
-        );
-
-        let sortedMilestones = await milestones.sort(function(a, b) {
-          if (!Semver.valid(a.title)) {
-            a.title = Semver.clean(a.title + ".0", { loose: true });
-          }
-          return Semver.compare(b.title, a.title);
-        });
-
-        moduleAPI[params.family].versions[sortedMilestones[0].title] = "master";
-        versionsArray.push(sortedMilestones[0].title);
-
         let branches = await $axios.$get(
           "https://api.github.com/repos/hapijs/" + params.family + "/branches",
           options
         );
 
         for (let branch of branches) {
-          if (branch.name.match(/^v+[0-9]+/g)) {
+          if (branch.name.match(/^v+[0-9]+|\bmaster\b/g)) {
             const apiPackage = await $axios.$get(
               "https://api.github.com/repos/hapijs/" +
                 params.family +
@@ -414,10 +396,7 @@ export default {
                 branch.name,
               options
             );
-            if (apiPackage.version === sortedMilestones[0].title) {
-              moduleAPI[params.family].versions[sortedMilestones[0].title] =
-                branch.name;
-            } else if (!versionsArray.includes(apiPackage.version)) {
+            if (!versionsArray.includes(apiPackage.version)) {
               moduleAPI[params.family].versions[apiPackage.version] =
                 branch.name;
               await versionsArray.push(apiPackage.version);
@@ -427,7 +406,6 @@ export default {
             }
           }
         }
-
         for (let apiVersion of versionsArray) {
           api = await $axios.$get(
             "https://api.github.com/repos/hapijs/" +
@@ -474,6 +452,7 @@ export default {
             moduleAPI[params.family].types[apiVersion] = {};
 
             // Get Modules and Interfaces
+            console.log("/type-docs/modules/_" + params.family + "_" + apiVersion.replace(/\./g, "_") + "_index_d_.md")
             let typesFile = await $axios.$get(
               "/type-docs/modules/_" + params.family + "_" + apiVersion.replace(/\./g, "_") + "_index_d_.md"
             );
@@ -552,10 +531,7 @@ export default {
 
             //Get Functions
             let functions = await $axios.$get(
-              "https://api.github.com/repos/jarrodyellets/" +
-                params.family +
-                "/contents/docs/README.md?ref=" +
-                moduleAPI[params.family].versions[apiVersion],
+              "/type-docs/modules/_" + params.family + "_" + apiVersion.replace(/\./g, "_") + "_index_d_.md",
               options
             );
             functions = functions + "###";
@@ -622,7 +598,7 @@ export default {
     return { moduleAPI, version, versionsArray };
   },
   created() {
-
+    console.log(this.moduleAPI)
     if (!this.$store.getters.loadModules.includes(this.$route.params.family)) {
       return this.$nuxt.error({ statusCode: 404 });
     }
