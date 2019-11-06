@@ -473,19 +473,18 @@ export default {
           ) {
             moduleAPI[params.family].types[apiVersion] = {};
 
-            // Get Modules
+            // Get Modules and Interfaces
             let typesFile = await $axios.$get(
-              "/type-docs/modules/_" + params.family + "_index_d_.md"
+              "/type-docs/modules/_" + params.family + "_" + apiVersion.replace(/\./g, "_") + "_index_d_.md"
             );
             let moduleList = await typesFile.match(/###\WModules([\s\S]*?)(?=#)/gm)
             let modules = moduleList[0].match(/\*(.*)/g)
-            console.log(modules)
             for (let m of modules) {
               let fileName = m.match(/_(.*).md/)
-              console.log(fileName[0])
               let moduleMD = await $axios.$get(
                 "/type-docs/modules/" + fileName[0]
               );
+              let interfaces = moduleMD.match(/###\WInterfaces([\s\S]*?)(?=$)/g);
               let modSnippet = moduleMD.match(/▸([\s\S]*?)(?=##)/gm);
               if (modSnippet){
                 let methods = modSnippet[0].match(/▸.*\s*:\s.*/gm);
@@ -504,10 +503,40 @@ export default {
                       .replace(/\[[^\]](.*?)\)/, linkText[0]) + methodClassEnd;
                   finalMethods = finalMethods.replace(method, formattedMethod);
                 }
+                let finalInter = "";
+                if (interfaces) {
+                  for (let i of interfaces) {
+                    let interfaceName = i.match(/(?=_)(.*)(?=\))/g);
+                    let interfaceFile = await $axios.$get(
+                      "/type-docs/interfaces/" + interfaceName[0]
+                    )
+                    interfaceFile = interfaceFile + "#";
+                    let interSnippet = interfaceFile.match(/\*\*([\s\S]*?)(?=#)/gm);
+                    for (let snippet of interSnippet) {
+                      let defaultValue = snippet.match(
+                        /(?<=\*\*`default`\*\*.)([^\s]+)/gm
+                      );
+                      if (!defaultValue) {
+                        defaultValue = [null];
+                      }
+                      finalInter =
+                        finalInter +
+                        snippet
+                          .replace(/\*\*\`/gm, "")
+                          .replace(/\`\*\*/gm, "")
+                          .replace(/(\s\*)(?=\w)/gm, "  `")
+                          .replace(/(?<=\w)(\*$)/gm, "`")
+                          .replace(
+                            /(?<=default)(.[^\s]+)/gm,
+                            ": `" + defaultValue[0] + "`"
+                          );
+                    }
+                  }
+                }
                 const modHTML = await $axios.$post(
                   "https://api.github.com/markdown",
                   {
-                    text: finalMethods.replace(/(?<=▪\W)(\*\*)/gm, "").replace(/(?<=▪\W\w*)(\*\*)/gm, "").replace(/▪/gm, ""),
+                    text: finalMethods.replace(/(?<=▪\W)(\*\*)/gm, "").replace(/(?<=▪\W\w*)(\*\*)/gm, "").replace(/▪/gm, "") + finalInter,
                     mode: "markdown"
                   },
                   {
@@ -519,67 +548,6 @@ export default {
                 let moduleName = m.match(/(?<=\[)(.*)(?=\])/)
                 moduleAPI[params.family].types[apiVersion][moduleName[0].toLowerCase()] = modHTML;
               }
-            }
-
-            //Get Interfaces
-            let interfaces = await $axios.$get(
-              "https://api.github.com/repos/jarrodyellets/" +
-                params.family +
-                "/contents/docs/interfaces?ref=" +
-                moduleAPI[params.family].versions[apiVersion],
-              options
-            );
-            for (let interfaceObject of interfaces) {
-              let inter = await $axios.$get(
-                "https://api.github.com/repos/jarrodyellets/" +
-                  params.family +
-                  "/contents/docs/interfaces/" +
-                  interfaceObject.name +
-                  "?ref=" +
-                  moduleAPI[params.family].versions[apiVersion],
-                options
-              );
-              inter = inter + "#";
-              let interSnippet = inter.match(/\*\*([\s\S]*?)(?=#)/gm);
-              let finalInter = "";
-              for (let snippet of interSnippet) {
-                let defaultValue = snippet.match(
-                  /(?<=\*\*`default`\*\*.)([^\s]+)/gm
-                );
-                if (!defaultValue) {
-                  defaultValue = [null];
-                }
-                finalInter =
-                  finalInter +
-                  snippet
-                    .replace(/\*\*\`/gm, "")
-                    .replace(/\`\*\*/gm, "")
-                    .replace(/(\s\*)(?=\w)/gm, "  `")
-                    .replace(/(?<=\w)(\*$)/gm, "`")
-                    .replace(
-                      /(?<=default)(.[^\s]+)/gm,
-                      ": `" + defaultValue[0] + "`"
-                    );
-              }
-              const interfaceHTML = await $axios.$post(
-                "https://api.github.com/markdown",
-                {
-                  text: finalInter,
-                  mode: "markdown"
-                },
-                {
-                  headers: {
-                    authorization: "token " + process.env.GITHUB_TOKEN
-                  }
-                }
-              );
-              //Add interfaces to modules
-              moduleAPI[params.family].types[apiVersion][
-                interfaceObject.name.substring(0, interfaceObject.name.length - 11)
-              ] =
-                moduleAPI[params.family].types[apiVersion][
-                  interfaceObject.name.substring(0, interfaceObject.name.length - 11)
-                ] + interfaceHTML;
             }
 
             //Get Functions
