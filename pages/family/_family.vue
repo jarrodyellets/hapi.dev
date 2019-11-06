@@ -474,22 +474,17 @@ export default {
             moduleAPI[params.family].types[apiVersion] = {};
 
             // Get Modules
-            let modules = await $axios.$get(
-              "https://api.github.com/repos/jarrodyellets/" +
-                params.family +
-                "/contents/docs/modules?ref=" +
-                moduleAPI[params.family].versions[apiVersion],
-              options
+            let typesFile = await $axios.$get(
+              "/type-docs/modules/_" + params.family + "_index_d_.md"
             );
+            let moduleList = await typesFile.match(/###\WModules([\s\S]*?)(?=#)/gm)
+            let modules = moduleList[0].match(/\*(.*)/g)
+            console.log(modules)
             for (let m of modules) {
+              let fileName = m.match(/_(.*).md/)
+              console.log(fileName[0])
               let moduleMD = await $axios.$get(
-                "https://api.github.com/repos/jarrodyellets/" +
-                  params.family +
-                  "/contents/docs/modules/" +
-                  m.name +
-                  "?ref=" +
-                  moduleAPI[params.family].versions[apiVersion],
-                options
+                "/type-docs/modules/" + fileName[0]
               );
               let modSnippet = moduleMD.match(/▸([\s\S]*?)(?=##)/gm);
               if (modSnippet){
@@ -521,7 +516,8 @@ export default {
                     }
                   }
                 );
-                moduleAPI[params.family].types[apiVersion][m.name.substring(0, m.name.length - 3)] = modHTML;
+                let moduleName = m.match(/(?<=\[)(.*)(?=\])/)
+                moduleAPI[params.family].types[apiVersion][moduleName[0].toLowerCase()] = modHTML;
               }
             }
 
