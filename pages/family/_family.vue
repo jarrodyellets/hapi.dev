@@ -636,12 +636,116 @@ export default {
             let functionSnippets = functions.match(
               /###\W\W[a-z]([\s\S]*?)(?=###)/gm
             );
+            let finalInter = "";
+            let interfaces = functions.match(
+              /###\WInterfaces([\s\S]*?)(?=###)/g
+            );
+            if (interfaces) {
+              let interfaceName = interfaces[0].match(/(?=_)(.*)(?=\))/g);
+              for (let name of interfaceName) {
+                let interfaceFile = await $axios.$get(
+                  "/type-docs/interfaces/" + name
+                );
+                interfaceFile = interfaceFile + "#";
+                let interSnippet = interfaceFile.match(
+                  /•\W\*\*([\s\S]*?)(?=#)/gm
+                );
+                let interfaceMethods = interfaceFile.match(
+                  /▸([\s\S]*?)(?=#)/gm
+                );
+                for (let snippet of interSnippet) {
+                  let defaultValue = snippet.match(
+                    /(?<=\*\*`default`\*\*.)([^\s]+)/gm
+                  );
+                  if (!defaultValue) {
+                    defaultValue = [null];
+                  }
+                  finalInter =
+                    finalInter +
+                    snippet
+                      .replace(/\*\*\`/gm, "")
+                      .replace(/•/gm, "")
+                      .replace(/\`\*\*/gm, "")
+                      .replace(/(\s\*)(?=\w)/gm, "  `")
+                      .replace(/(?<=\w)(\*$)/gm, "`")
+                      .replace(
+                        /(?<=default)(.[^\s]+)/gm,
+                        ": `" + defaultValue[0] + "`"
+                      );
+                }
+                if (interfaceMethods) {
+                  let finalMethods = "";
+                  let title = "";
+                  for (let interfaceMethod of interfaceMethods) {
+                    title = interfaceMethod
+                      .match(/(?<=▸\W\*\*)(.*)(?=\*\*)/g)[0]
+                      .toLowerCase();
+                    let methodClassStart = "<pre class='method'>";
+                    let methodClassEnd = "</pre>";
+                    let functionMethod = interfaceMethod.match(/▸.*\s*:\s.*/gm);
+                    let functionNoHeader = interfaceMethod
+                      .replace(/\###.+/g, "")
+                      .replace(/(?<=▪\W)(\*\*)/gm, "")
+                      .replace(/(?<=▪\W\w*)(\*\*)/gm, "")
+                      .replace(/▪/gm, "");
+                    for (let i = 0; i < functionMethod.length; ++i) {
+                      let formatMethod = functionMethod[i]
+                        .replace(/▸/gm, "")
+                        .replace(/[▸`\*.]/g, "")
+                        .replace(/</, "&lt;")
+                        .replace(/>/, "&gt;");
+                      let linkText = functionMethod[i].match(
+                        /(?<=\[)[^\]](.*)(?=])/
+                      );
+                      if (linkText) {
+                        let wrappedFunction =
+                          methodClassStart.concat(
+                            formatMethod.replace(/\[[^\]](.*?)\)/, linkText[0])
+                          ) + methodClassEnd;
+                        finalMethods = functionNoHeader.replace(
+                          functionMethod[i],
+                          wrappedFunction
+                        );
+                      } else {
+                        let wrappedFunction =
+                          methodClassStart.concat(formatMethod) +
+                          methodClassEnd;
+                        finalMethods = functionNoHeader.replace(
+                          functionMethod[i],
+                          wrappedFunction
+                        );
+                      }
+                    }
+                    const interfaceMethodHTML = await $axios.$post(
+                      "https://api.github.com/markdown",
+                      {
+                        text: finalMethods
+                          .replace(/(?<=▪\W)(\*\*)/gm, "")
+                          .replace(/(?<=▪\W\w*)(\*\*)/gm, "")
+                          .replace(/▪/gm, ""),
+                        mode: "markdown"
+                      },
+                      {
+                        headers: {
+                          authorization: "token " + process.env.GITHUB_TOKEN
+                        }
+                      }
+                    );
+                    moduleAPI[params.family].types[apiVersion][
+                      title
+                    ] = await interfaceMethodHTML;
+                  }
+                }
+              }
+            }
             if (functionSnippets) {
               for (let f of functionSnippets) {
                 let title = f
                   .match(/\###.+/g)[0]
                   .substring(5)
                   .toLowerCase();
+                let linkText = f.match(/(?<=\[)[^\]](.*?)(?=])/g);
+                let links = f.match(/\[[^\]](.*?)\)/g);
                 let methodClassStart = "<pre class='method'>";
                 let methodClassEnd = "</pre>";
                 let functionMethod = f.match(/▸.*\s*:\s.*/gm);
@@ -651,22 +755,32 @@ export default {
                   .replace(/(?<=▪\W\w*)(\*\*)/gm, "")
                   .replace(/▪/gm, "");
                 for (let i = 0; i < functionMethod.length; ++i) {
-                  let formatMethod = functionMethod[i]
-                    .replace(/▸/gm, "")
-                    .replace(/[▸`\*.]/g, "")
-                    .replace(/</, "&lt;")
-                    .replace(/>/, "&gt;");
+                  let noLinks = functionMethod[i];
+                  if (linkText) {
+                    for (let j = 0; j < linkText.length; ++j) {
+                      functionMethod[i] = await functionMethod[i].replace(
+                        links[j],
+                        linkText[j]
+                      );
+                    }
+                  }
                   let wrappedFunction =
-                    methodClassStart.concat(formatMethod) + methodClassEnd;
+                    (await methodClassStart.concat(
+                      functionMethod[i]
+                        .replace(/▸/gm, "")
+                        .replace(/[▸`\*.]/g, "")
+                        .replace(/</, "&lt;")
+                        .replace(/>/, "&gt;")
+                    )) + methodClassEnd;
                   functionNoHeader = functionNoHeader.replace(
-                    functionMethod[i],
+                    noLinks,
                     wrappedFunction
                   );
                 }
                 const functionHTML = await $axios.$post(
                   "https://api.github.com/markdown",
                   {
-                    text: functionNoHeader,
+                    text: functionNoHeader + finalInter,
                     mode: "markdown"
                   },
                   {
@@ -700,7 +814,6 @@ export default {
     return { moduleAPI, version, versionsArray };
   },
   created() {
-    console.log(this.moduleAPI);
     if (!this.$store.getters.loadModules.includes(this.$route.params.family)) {
       return this.$nuxt.error({ statusCode: 404 });
     }
