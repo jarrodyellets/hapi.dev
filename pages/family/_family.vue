@@ -524,7 +524,6 @@ export default {
                           "/type-docs/interfaces/" + interfaceName[0]
                         );
                         interfaceFile = interfaceFile + "#";
-                        console.log(interfaceName[0]);
                         let interSnippet = interfaceFile.match(
                           /•\W\*\*([\s\S]*?)(?=#)/gm
                         );
@@ -665,7 +664,6 @@ export default {
                 "_index_d_.md",
               options
             );
-            console.log("here");
             functions = functions + "###";
             let functionSnippets = functions.match(
               /###\W\W[a-z]([\s\S]*?)(?=###)/gm
@@ -715,7 +713,6 @@ export default {
                 if (interfaceMethods) {
                   let finalMethods = "";
                   let title = "";
-                  console.log("HERE", interfaceMethods);
                   for (let interfaceMethod of interfaceMethods) {
                     title = interfaceMethod
                       .match(/(?<=▸\W\*\*)(.*)(?=\*\*)/g)[0]
@@ -782,7 +779,6 @@ export default {
             }
             if (functionSnippets) {
               for (let f of functionSnippets) {
-                console.log("WHAT");
                 let title = f
                   .match(/\###.+/g)[0]
                   .substring(5)
