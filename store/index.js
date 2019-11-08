@@ -7,16 +7,16 @@ export const state = () => ({
   version: '',
   types: [
     'accept',
-    'address',
-    'boom',
+    // 'address',
+    // 'boom',
     'code',
     'cryptiles',
-    'formula',
+    // 'formula',
     'hoek',
-    'iron',
-    'lab',
+    // 'iron',
+    // 'lab',
     'pinpoint',
-    'wreck'
+    // 'wreck'
   ],
   modules: [
     'accept',
