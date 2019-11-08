@@ -9,7 +9,7 @@
     "generate": "nuxt generate",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "lintfix": "eslint --fix --ext .js,.vue --ignore-path .gitignore .",
-    "testDocs": "node assets/js/genTypeDocs & typedoc static/lib/typeIndexes --out static/type-docs/ --mode modules --readme none --target ES6 --plugin typedoc-plugin-markdown --ignoreCompilerErrors --includeDeclarations --disableOutputCheck --excludeExternals -hideSources -hideBreadcrumbs",
+    "testDocs": "node assets/js/genTypeDocs & typedoc static/lib/typeIndexes --out static/type-docs/ --mode modules --readme none --target ES6 --plugin typedoc-plugin-markdown --ignoreCompilerErrors --includeDeclarations --disableOutputCheck --excludeExternals -hideSources -hideBreadcrumbs & nuxt generate",
     "generateDocs": "typedoc static/lib/typeIndexes --out static/type-docs/ --mode file --readme none --target ES6 --plugin typedoc-plugin-markdown --ignoreCompilerErrors --includeDeclarations --disableOutputCheck --excludeExternals -hideSources -hideBreadcrumbs"
   },
   "dependencies": {
