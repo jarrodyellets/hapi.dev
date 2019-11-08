@@ -460,7 +460,7 @@ export default {
 
             // Get Modules and Interfaces
             let typesFile = await $axios.$get(
-              "/type-docs/modules/_" +
+              "https://hapi.dev/type-docs/modules/_" +
                 params.family +
                 "_" +
                 apiVersion.replace(/\./g, "_") +
@@ -475,7 +475,7 @@ export default {
               for (let m of modules) {
                 let fileName = m.match(/_(.*).md/);
                 let moduleMD = await $axios.$get(
-                  "/type-docs/modules/" + fileName[0]
+                  "https://hapi.dev/type-docs/modules/" + fileName[0]
                 );
                 moduleMD = moduleMD + "##";
                 let interfaces = moduleMD.match(
@@ -521,7 +521,7 @@ export default {
                       for (let i of interfaces) {
                         let interfaceName = i.match(/(?=_)(.*)(?=\))/g);
                         let interfaceFile = await $axios.$get(
-                          "/type-docs/interfaces/" + interfaceName[0]
+                          "https://hapi.dev/type-docs/interfaces/" + interfaceName[0]
                         );
                         interfaceFile = interfaceFile + "#";
                         let interSnippet = interfaceFile.match(
@@ -657,7 +657,7 @@ export default {
 
             //Get Functions
             let functions = await $axios.$get(
-              "/type-docs/modules/_" +
+              "https://hapi.dev/type-docs/modules/_" +
                 params.family +
                 "_" +
                 apiVersion.replace(/\./g, "_") +
@@ -676,7 +676,7 @@ export default {
               let interfaceName = interfaces[0].match(/(?=_)(.*)(?=\))/g);
               for (let name of interfaceName) {
                 let interfaceFile = await $axios.$get(
-                  "/type-docs/interfaces/" + name
+                  "https://hapi.dev/type-docs/interfaces/" + name
                 );
                 interfaceFile = interfaceFile + "#";
                 let interfaceTitle = interfaceFile.match(
