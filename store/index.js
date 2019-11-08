@@ -11,14 +11,11 @@ export const state = () => ({
     'boom',
     'code',
     'cryptiles',
-    'file',
     'formula',
     'hoek',
     'iron',
     'lab',
     'pinpoint',
-    'teamwork',
-    'topo',
     'wreck'
   ],
   modules: [
