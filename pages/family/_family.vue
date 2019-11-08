@@ -457,15 +457,21 @@ export default {
               moduleAPI[params.family].versions[apiVersion] === "master")
           ) {
             moduleAPI[params.family].types[apiVersion] = {};
+            console.log("https://https://hapi-tsdocs.netlify.com/type-docs/modules/_" +
+                params.family +
+                "_" +
+                apiVersion.replace(/\./g, "_") +
+                "_index_d_.md")
 
             // Get Modules and Interfaces
             let typesFile = await $axios.$get(
-              "https://https://hapi-tsdocs.netlify.com/type-docs/modules/_" +
+              "https://hapi-tsdocs.netlify.com/type-docs/modules/_" +
                 params.family +
                 "_" +
                 apiVersion.replace(/\./g, "_") +
                 "_index_d_.md"
             );
+            console.log("here")
             typesFile = typesFile + "#";
             let moduleList = await typesFile.match(
               /###\WModules([\s\S]*?)(?=#)/gm
