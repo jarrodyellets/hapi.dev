@@ -457,11 +457,6 @@ export default {
               moduleAPI[params.family].versions[apiVersion] === "master")
           ) {
             moduleAPI[params.family].types[apiVersion] = {};
-            console.log("https://https://hapi-tsdocs.netlify.com/type-docs/modules/_" +
-                params.family +
-                "_" +
-                apiVersion.replace(/\./g, "_") +
-                "_index_d_.md")
 
             // Get Modules and Interfaces
             let typesFile = await $axios.$get(
@@ -471,7 +466,6 @@ export default {
                 apiVersion.replace(/\./g, "_") +
                 "_index_d_.md"
             );
-            console.log("here")
             typesFile = typesFile + "#";
             let moduleList = await typesFile.match(
               /###\WModules([\s\S]*?)(?=#)/gm
@@ -523,12 +517,14 @@ export default {
                       }
                     }
                     let finalInter = "";
+                    let interfaceTitle = ""
                     if (interfaces) {
                       for (let i of interfaces) {
                         let interfaceName = i.match(/(?=_)(.*)(?=\))/g);
                         let interfaceFile = await $axios.$get(
                           "https://hapi-tsdocs.netlify.com/type-docs/interfaces/" + interfaceName[0]
                         );
+                        interfaceTitle = "**" + interfaceFile.match(/(?<=#\WInterface:\W)(.*)/g)[0] + "**:";
                         interfaceFile = interfaceFile + "#";
                         let interSnippet = interfaceFile.match(
                           /•\W\*\*([\s\S]*?)(?=#)/gm
@@ -643,7 +639,7 @@ export default {
                           finalMethods
                             .replace(/(?<=▪\W)(\*\*)/gm, "")
                             .replace(/(?<=▪\W\w*)(\*\*)/gm, "")
-                            .replace(/▪/gm, "") + finalInter,
+                            .replace(/▪/gm, "") + `<br>` + interfaceTitle + `<br><br>` + finalInter + `<br><br>`,
                         mode: "markdown"
                       },
                       {
@@ -678,111 +674,111 @@ export default {
             let interfaces = functions.match(
               /###\WInterfaces([\s\S]*?)(?=###)/g
             );
-            if (interfaces) {
-              let interfaceName = interfaces[0].match(/(?=_)(.*)(?=\))/g);
-              for (let name of interfaceName) {
-                let interfaceFile = await $axios.$get(
-                  "https://hapi-tsdocs.netlify.com/type-docs/interfaces/" + name
-                );
-                interfaceFile = interfaceFile + "#";
-                let interfaceTitle = interfaceFile.match(
-                  /(?<=#\WInterface:\W)(.*)/
-                );
-                let interSnippet = interfaceFile.match(
-                  /•\W\*\*([\s\S]*?)(?=#)/gm
-                );
-                let interfaceMethods = interfaceFile.match(
-                  /▸([\s\S]*?)(?=#)/gm
-                );
-                if (interSnippet) {
-                  for (let snippet of interSnippet) {
-                    let defaultValue = snippet.match(
-                      /(?<=\*\*`default`\*\*.)([^\s]+)/gm
-                    );
-                    if (!defaultValue) {
-                      defaultValue = [null];
-                    }
-                    finalInter =
-                      finalInter +
-                      snippet
-                        .replace(/\*\*\`/gm, "")
-                        .replace(/•/gm, "")
-                        .replace(/\`\*\*/gm, "")
-                        .replace(/(\s\*)(?=\w)/gm, "  `")
-                        .replace(/(?<=\w)(\*$)/gm, "`")
-                        .replace(
-                          /(?<=default)(.[^\s]+)/gm,
-                          ": `" + defaultValue[0] + "`"
-                        );
-                  }
-                }
-                if (interfaceMethods) {
-                  let finalMethods = "";
-                  let title = "";
-                  for (let interfaceMethod of interfaceMethods) {
-                    title = interfaceMethod
-                      .match(/(?<=▸\W\*\*)(.*)(?=\*\*)/g)[0]
-                      .toLowerCase();
-                    let methodClassStart = "<pre class='method'>";
-                    let methodClassEnd = "</pre>";
-                    let functionMethod = interfaceMethod.match(/▸.*\s*:\s.*/gm);
-                    let functionNoHeader = interfaceMethod
-                      .replace(/\###.+/g, "")
-                      .replace(/(?<=▪\W)(\*\*)/gm, "")
-                      .replace(/(?<=▪\W\w*)(\*\*)/gm, "")
-                      .replace(/▪/gm, "");
-                    for (let i = 0; i < functionMethod.length; ++i) {
-                      let formatMethod = functionMethod[i]
-                        .replace(/▸/gm, "")
-                        .replace(/[▸`\*.]/g, "")
-                        .replace(/</, "&lt;")
-                        .replace(/>/, "&gt;");
-                      let linkText = functionMethod[i].match(
-                        /(?<=\[)[^\]](.*)(?=])/
-                      );
-                      if (linkText) {
-                        let wrappedFunction =
-                          methodClassStart.concat(
-                            formatMethod.replace(/\[[^\]](.*?)\)/, linkText[0])
-                          ) + methodClassEnd;
-                        finalMethods = functionNoHeader.replace(
-                          functionMethod[i],
-                          wrappedFunction
-                        );
-                      } else {
-                        let wrappedFunction =
-                          methodClassStart.concat(formatMethod) +
-                          methodClassEnd;
-                        finalMethods = functionNoHeader.replace(
-                          functionMethod[i],
-                          wrappedFunction
-                        );
-                      }
-                    }
-                    const interfaceMethodHTML = await $axios.$post(
-                      "https://api.github.com/markdown",
-                      {
-                        text:
-                          interfaceTitle +
-                          finalMethods
-                            .replace(/(?<=▪\W)(\*\*)/gm, "")
-                            .replace(/(?<=▪\W\w*)(\*\*)/gm, "")
-                            .replace(/▪/gm, ""),
-                        mode: "markdown"
-                      },
-                      {
-                        headers: {
-                          authorization: "token " + process.env.GITHUB_TOKEN
-                        }
-                      }
-                    );
-                    moduleAPI[params.family].types[apiVersion][
-                      title
-                    ] = await interfaceMethodHTML;
-                  }
-                }
-              }
-            }
+            // if (interfaces) {
+            //   let interfaceName = interfaces[0].match(/(?=_)(.*)(?=\))/g);
+            //   for (let name of interfaceName) {
+            //     let interfaceFile = await $axios.$get(
+            //       "https://hapi-tsdocs.netlify.com/type-docs/interfaces/" + name
+            //     );
+            //     interfaceFile = interfaceFile + "#";
+            //     let interfaceTitle = interfaceFile.match(
+            //       /(?<=#\WInterface:\W)(.*)/
+            //     );
+            //     let interSnippet = interfaceFile.match(
+            //       /•\W\*\*([\s\S]*?)(?=#)/gm
+            //     );
+            //     let interfaceMethods = interfaceFile.match(
+            //       /▸([\s\S]*?)(?=#)/gm
+            //     );
+            //     if (interSnippet) {
+            //       for (let snippet of interSnippet) {
+            //         let defaultValue = snippet.match(
+            //           /(?<=\*\*`default`\*\*.)([^\s]+)/gm
+            //         );
+            //         if (!defaultValue) {
+            //           defaultValue = [null];
+            //         }
+            //         finalInter =
+            //           finalInter +
+            //           snippet
+            //             .replace(/\*\*\`/gm, "")
+            //             .replace(/•/gm, "")
+            //             .replace(/\`\*\*/gm, "")
+            //             .replace(/(\s\*)(?=\w)/gm, "  `")
+            //             .replace(/(?<=\w)(\*$)/gm, "`")
+            //             .replace(
+            //               /(?<=default)(.[^\s]+)/gm,
+            //               ": `" + defaultValue[0] + "`"
+            //             );
+            //       }
+            //     }
+            //     if (interfaceMethods) {
+            //       let finalMethods = "";
+            //       let title = "";
+            //       for (let interfaceMethod of interfaceMethods) {
+            //         title = interfaceMethod
+            //           .match(/(?<=▸\W\*\*)(.*)(?=\*\*)/g)[0]
+            //           .toLowerCase();
+            //         let methodClassStart = "<pre class='method'>";
+            //         let methodClassEnd = "</pre>";
+            //         let functionMethod = interfaceMethod.match(/▸.*\s*:\s.*/gm);
+            //         let functionNoHeader = interfaceMethod
+            //           .replace(/\###.+/g, "")
+            //           .replace(/(?<=▪\W)(\*\*)/gm, "")
+            //           .replace(/(?<=▪\W\w*)(\*\*)/gm, "")
+            //           .replace(/▪/gm, "");
+            //         for (let i = 0; i < functionMethod.length; ++i) {
+            //           let formatMethod = functionMethod[i]
+            //             .replace(/▸/gm, "")
+            //             .replace(/[▸`\*.]/g, "")
+            //             .replace(/</, "&lt;")
+            //             .replace(/>/, "&gt;");
+            //           let linkText = functionMethod[i].match(
+            //             /(?<=\[)[^\]](.*)(?=])/
+            //           );
+            //           if (linkText) {
+            //             let wrappedFunction =
+            //               methodClassStart.concat(
+            //                 formatMethod.replace(/\[[^\]](.*?)\)/, linkText[0])
+            //               ) + methodClassEnd;
+            //             finalMethods = functionNoHeader.replace(
+            //               functionMethod[i],
+            //               wrappedFunction
+            //             );
+            //           } else {
+            //             let wrappedFunction =
+            //               methodClassStart.concat(formatMethod) +
+            //               methodClassEnd;
+            //             finalMethods = functionNoHeader.replace(
+            //               functionMethod[i],
+            //               wrappedFunction
+            //             );
+            //           }
+            //         }
+            //         const interfaceMethodHTML = await $axios.$post(
+            //           "https://api.github.com/markdown",
+            //           {
+            //             text:
+            //               interfaceTitle +
+            //               finalMethods
+            //                 .replace(/(?<=▪\W)(\*\*)/gm, "")
+            //                 .replace(/(?<=▪\W\w*)(\*\*)/gm, "")
+            //                 .replace(/▪/gm, ""),
+            //             mode: "markdown"
+            //           },
+            //           {
+            //             headers: {
+            //               authorization: "token " + process.env.GITHUB_TOKEN
+            //             }
+            //           }
+            //         );
+            //         moduleAPI[params.family].types[apiVersion][
+            //           title
+            //         ] = await interfaceMethodHTML;
+            //       }
+            //     }
+            //   }
+            // }
             if (functionSnippets) {
               for (let f of functionSnippets) {
                 let title = f
