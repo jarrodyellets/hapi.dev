@@ -13,7 +13,7 @@ export const state = () => ({
     'cryptiles',
     // 'formula',
     'hoek',
-    // 'iron',
+    'iron',
     // 'lab',
     'pinpoint',
     // 'wreck'
@@ -106,4 +106,4 @@ export const getters = {
   loadModules(state) {
     return state.modules
   }
-};
+}
