@@ -704,7 +704,7 @@ export default {
                     for (let j = 0; j < linkText.length; ++j) {
                       if (
                         !(linkText[j] in interfaces) &&
-                        links[j].slice(-4) === ".md)"
+                        links[j].slice(-4) === ".md)" && links[j].includes("/interfaces/")
                       ) {
                         interfaces[linkText[j]] = links[j];
                       }
