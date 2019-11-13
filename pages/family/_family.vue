@@ -148,14 +148,15 @@ export default {
       if (this.moduleAPI[this.$route.params.family].types[this.getVersion]) {
         for (let head of headers) {
           let wrapper = document.createElement("div");
+          console.log(head.innerText);
           let id = head.innerText
+            .toLowerCase()
+            .replace(this.$route.params + ".", "")
             .replace(/\(.*\)/g, "")
             .replace(/\s/gm, "")
             .replace(/\./gm, "")
             .replace("?", "")
             .replace("await", "")
-            .toLowerCase()
-            .replace(this.$route.params.family, "");
           wrapper.setAttribute("class", "module-item-wrapper");
           wrapper.setAttribute("id", id);
           let elements = nextUntil(head);
