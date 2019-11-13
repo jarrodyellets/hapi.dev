@@ -8,7 +8,7 @@ export const state = () => ({
   types: [
     'accept',
     // 'address',
-    // 'boom',
+    'boom',
     'code',
     'cryptiles',
     // 'formula',

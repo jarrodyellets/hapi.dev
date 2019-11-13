@@ -738,7 +738,7 @@ export default {
                       if (interSnippet) {
                         finalInter =
                           finalInter +
-                          '\n\n' +
+                          '\n\n' + `<br>` + 
                           "**" +
                           key +
                           "**:" +
@@ -779,14 +779,12 @@ export default {
                     wrappedFunction
                   );
                 }
-                console.log("<div>" + functionNoHeader + "</div>" +
-                      finalInter)
                 const functionHTML = await $axios.$post(
                   "https://api.github.com/markdown",
                   {
                     text:
-                      "<div>" + functionNoHeader + "</div>" +
-                      finalInter,
+                      functionNoHeader + "<div>" +
+                      finalInter + "</div>",
                     mode: "markdown"
                   },
                   {
@@ -1006,7 +1004,7 @@ export default {
 
 .module-item-wrapper > div {
   font-size: 1.1em;
-  margin-bottom: 0px;
+  margin-top: 20px;
 }
 
 br {
