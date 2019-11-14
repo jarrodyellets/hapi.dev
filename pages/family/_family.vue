@@ -136,10 +136,9 @@ export default {
       if (this.moduleAPI[this.$route.params.family].types[this.getVersion]) {
         for (let head of headers) {
           let wrapper = document.createElement('div');
-          console.log(head.innerText);
           let id = head.innerText
             .toLowerCase()
-            .replace(this.$route.params + '.', '')
+            .replace(this.$route.params.family + '.', '')
             .replace(/\(.*\)/g, '')
             .replace(/\s/gm, '')
             .replace(/\./gm, '')
@@ -585,11 +584,12 @@ export default {
                   formatMethod = methodClassStart + formatMethod + methodClassEnd;
                   finalClass = constructor[0]
                     .replace(method[0], formatMethod)
-                    .replace(/##.*/g, "")
+                    .replace(/###.*/g, "")
+                    .replace("## Properties", '<br>' + "**Properties**")
                     .replace(/•/gm, '')
                     .replace(/\`\*\*/gm, '')
-                    .replace(/(\s\*)(?=\w)/gm, '  `')
-                    .replace(/(?<=\w)(\*$)/gm, '`');
+                    .replace(/(:\s\*)(?=\w)/gm, '  `')
+                    .replace(/(?<=`.*?)(\*$)/gm, '`');
                 }
                 console.log(finalClass)
                 const classHTML = await $axios.$post(
