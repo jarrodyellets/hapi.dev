@@ -11,12 +11,12 @@ export const state = () => ({
     'boom',
     'code',
     'cryptiles',
-    // 'formula',
+    'formula',
     'hoek',
     'iron',
     // 'lab',
     'pinpoint',
-    // 'wreck'
+    'wreck'
   ],
   modules: [
     'accept',
