@@ -430,16 +430,17 @@ export default {
                         .replace(/[▸`\*.]/g, '')
                         .replace(/</, '&lt;')
                         .replace(/>/, '&gt;');
-                      let linkText = formattedMethod.match(/(?<=\[)[^\]](.*)(?=])/);
+                      let linkText = formattedMethod.match(/(?<=\[)[^\]](.*?)(?=])/g);
+                      let links = formattedMethod.match(/\[[^\]](.*?)\)/g);
                       if (linkText) {
-                        formattedMethod =
-                          methodClassStart.concat(formattedMethod).replace(/\[[^\]](.*?)\)/, linkText[0]) +
-                          methodClassEnd;
-                        finalMethods = finalMethods.replace(method, formattedMethod);
-                      } else {
-                        formattedMethod = methodClassStart.concat(formattedMethod) + methodClassEnd;
-                        finalMethods = finalMethods.replace(method, formattedMethod);
+                        console.log(formattedMethod)
+                        for (let j = 0; j < linkText.length; ++j) {
+                          console.log(links[j], linkText[j])
+                          formattedMethod =
+                            formattedMethod.replace(links[j], linkText[j])
+                        }
                       }
+                      finalMethods = finalMethods.replace(method, methodClassStart.concat(formattedMethod) + methodClassEnd);
                     }
                     let finalInter = '';
                     let interfaceTitle = '';
@@ -558,7 +559,7 @@ export default {
               let classes = classList[0].match(/\*(.*)/g);
               let finalClass = '';
               for (let c of classes) {
-                let title = "";
+                let title = '';
                 let fileName = c.match(/_(.*).md/);
                 let classMD = await $axios.$get('https://hapi-tsdocs.netlify.com/type-docs/classes/' + fileName[0]);
                 classMD = (await classMD) + '##';
@@ -567,7 +568,10 @@ export default {
 
                 if (constructor) {
                   let method = constructor[0].match(/\\.*\s*:\s.*/);
-                  title = method[0].match(/(?<=\*\*)(.*)(?=\*\*)/)[0].replace(/\W/, "").toLowerCase();
+                  title = method[0]
+                    .match(/(?<=\*\*)(.*)(?=\*\*)/)[0]
+                    .replace(/\W/, '')
+                    .toLowerCase();
                   let formatMethod = method[0]
                     .replace(/[\\+`\*.]/g, '')
                     .replace(/</, '&lt;')
@@ -584,14 +588,13 @@ export default {
                   formatMethod = methodClassStart + formatMethod + methodClassEnd;
                   finalClass = constructor[0]
                     .replace(method[0], formatMethod)
-                    .replace(/###.*/g, "")
-                    .replace("## Properties", '<br>' + "**Properties**")
+                    .replace(/###.*/g, '')
+                    .replace('## Properties', '<br>' + '**Properties**')
                     .replace(/•/gm, '')
                     .replace(/\`\*\*/gm, '')
                     .replace(/(:\s\*)(?=\w)/gm, '  `')
                     .replace(/(?<=`.*?)(\*$)/gm, '`');
                 }
-                console.log(finalClass)
                 const classHTML = await $axios.$post(
                   'https://api.github.com/markdown',
                   {
@@ -861,6 +864,10 @@ export default {
 
 .module-item-wrapper {
   padding-top: 1em;
+}
+
+.module-item-wrapper pre:not(:first-child) {
+  margin-top: 40px;
 }
 
 .module-item-wrapper table {
