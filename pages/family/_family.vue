@@ -433,14 +433,14 @@ export default {
                       let linkText = formattedMethod.match(/(?<=\[)[^\]](.*?)(?=])/g);
                       let links = formattedMethod.match(/\[[^\]](.*?)\)/g);
                       if (linkText) {
-                        console.log(formattedMethod)
                         for (let j = 0; j < linkText.length; ++j) {
-                          console.log(links[j], linkText[j])
-                          formattedMethod =
-                            formattedMethod.replace(links[j], linkText[j])
+                          formattedMethod = formattedMethod.replace(links[j], linkText[j]);
                         }
                       }
-                      finalMethods = finalMethods.replace(method, methodClassStart.concat(formattedMethod) + methodClassEnd);
+                      finalMethods = finalMethods.replace(
+                        method,
+                        methodClassStart.concat(formattedMethod) + methodClassEnd
+                      );
                     }
                     let finalInter = '';
                     let interfaceTitle = '';
@@ -450,9 +450,10 @@ export default {
                         let interfaceFile = await $axios.$get(
                           'https://hapi-tsdocs.netlify.com/type-docs/interfaces/' + interfaceName[0]
                         );
-                        interfaceTitle = '**' + interfaceFile.match(/(?<=#\WInterface:\W)(.*)/g)[0] + '**:';
+                        let iTitle = '**' + interfaceFile.match(/(?<=#\WInterface:\W)(.*)/g)[0] + '**:';
                         interfaceFile = interfaceFile + '#';
                         let interSnippet = interfaceFile.match(/•\W\*\*([\s\S]*?)(?=#)/gm);
+                        interfaceTitle = interSnippet ? iTitle : '';
                         let interfaceMethods = interfaceFile.match(/▸([\s\S]*?)(?=#)/gm);
                         if (interSnippet) {
                           for (let snippet of interSnippet) {
@@ -526,6 +527,9 @@ export default {
                         }
                       }
                     }
+                    let finalInterfaces = interfaceTitle
+                      ? `<br>` + interfaceTitle + `<br><br>` + finalInter + `<br><br>`
+                      : null;
                     const modHTML = await $axios.$post(
                       'https://api.github.com/markdown',
                       {
@@ -533,12 +537,7 @@ export default {
                           finalMethods
                             .replace(/(?<=▪\W)(\*\*)/gm, '')
                             .replace(/(?<=▪\W\w*)(\*\*)/gm, '')
-                            .replace(/▪/gm, '') +
-                          `<br>` +
-                          interfaceTitle +
-                          `<br><br>` +
-                          finalInter +
-                          `<br><br>`,
+                            .replace(/▪/gm, '') + finalInterfaces,
                         mode: 'markdown'
                       },
                       {
