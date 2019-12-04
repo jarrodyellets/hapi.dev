@@ -73,7 +73,7 @@ export default {
   },
   async asyncData ({ $axios }) {
     let time = await $axios.$get(
-      "https://hapi.test.netlify.com/apiTest.md"
+      "https://hapi-test.netlify.com/apiTest.md"
     )
     return { time }
   },
