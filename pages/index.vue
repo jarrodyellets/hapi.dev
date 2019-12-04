@@ -78,6 +78,7 @@ export default {
     return { time }
   },
   created() {
+    console.log(this.time)
     this.$store.commit("setDisplay", "home");
   }
 };
