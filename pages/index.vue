@@ -61,6 +61,7 @@ import Quality from "~/components/home/Quality.vue";
 import DevelopersFirst from "~/components/home/DevelopersFirst.vue";
 import Predictability from "~/components/home/Predictability.vue";
 import Extensibility from "~/components/home/Extensibility.vue";
+import page from "../../static/lib/apiTest.md";
 
 export default {
   layout: "home",
@@ -78,7 +79,7 @@ export default {
     return { time }
   },
   created() {
-    console.log(this.time)
+    console.log(page)
     this.$store.commit("setDisplay", "home");
   }
 };
