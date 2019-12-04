@@ -71,6 +71,12 @@ export default {
     Predictability,
     Extensibility
   },
+  async asyncData ({ $axios }) {
+    let time = await $axios.$get(
+      "https://hapi.test.netlify.com/apiTest.md"
+    )
+    return { time }
+  },
   created() {
     this.$store.commit("setDisplay", "home");
   }
