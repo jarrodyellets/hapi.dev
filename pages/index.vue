@@ -61,7 +61,7 @@ import Quality from "~/components/home/Quality.vue";
 import DevelopersFirst from "~/components/home/DevelopersFirst.vue";
 import Predictability from "~/components/home/Predictability.vue";
 import Extensibility from "~/components/home/Extensibility.vue";
-import page from "../../static/lib/apiTest.md";
+import page from "../static/lib/apiTest.md";
 
 export default {
   layout: "home",
@@ -71,12 +71,6 @@ export default {
     DevelopersFirst,
     Predictability,
     Extensibility
-  },
-  async asyncData ({ $axios }) {
-    let time = await $axios.$get(
-      "https://hapi-test.netlify.com/lib/apiTest.md"
-    )
-    return { time }
   },
   created() {
     console.log(page)
