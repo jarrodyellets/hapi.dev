@@ -4,7 +4,7 @@
       <div class="side-nav-inner-wrapper">
         <div class="family-top-wrapper">
           <div class="family-nav-title">
-            <a :href="'/family/' + header">{{ header }}</a>
+            <a :href="'/family/' + family">{{ family }}</a>
             <span class="family-span" v-if="page === 'api'">
               <select
                 @change="onVersionChange($event)"
