@@ -178,6 +178,18 @@
           >
             <a href="/family/joi/tester">Schema Tester</a>
           </div>
+          <hr v-if="family === 'joi'" class="landing-hr" />
+          <div
+            v-if="family === 'joi'"
+            id="joi2"
+            :class="
+              page === 'schema-store'
+                ? 'landing-nav-api-title bold'
+                : 'landing-nav-api-title'
+            "
+          >
+            <a href="/family/joi/schema-store">Schema Store</a>
+          </div>
           <hr class="landing-hr" />
           <div
             :class="
