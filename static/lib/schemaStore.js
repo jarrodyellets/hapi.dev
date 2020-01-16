@@ -67,6 +67,14 @@ export const schemaStore = {
         Joi.string(),
         Joi.array().items(Joi.string())
       ),
+      directories: Joi.object({
+        bin: Joi.string(),
+        doc: Joi.string(),
+        example: Joi.string(),
+        lib: Joi.string(),
+        man: Joi.string(),
+        test: Joi.string(),
+      })
       scripts: Joi.string(),
       config: Joi.string(),
       dependencies: Joi.string(),
@@ -79,7 +87,6 @@ export const schemaStore = {
       private: Joi.string(),
       publishConfig: Joi.string(),
       engines: Joi.string(),
-      directories: Joi.string()
     });
     `.trim()
   }
