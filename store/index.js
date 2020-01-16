@@ -11,6 +11,7 @@ export const state = () => ({
   faq: false,
   advanced: false,
   family: "joi",
+  schemaStore: "//Schema goes here",
   schema:
     "//Insert your joi schema here \n" +
     "Joi.object({\n" +
@@ -119,6 +120,9 @@ export const mutations = {
   },
   setValidate(state, validate) {
     state.validate = validate;
+  },
+  setSchemaStore(state, schema) {
+    state.schemaStore = schema;
   }
 };
 
@@ -161,5 +165,8 @@ export const getters = {
   },
   loadValidate(state) {
     return state.validate;
+  },
+  loadSchemaStore(state) {
+    return state.schemaStore;
   }
 };
