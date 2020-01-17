@@ -29,6 +29,12 @@
           :options="options"
           @input="onSchemaChange"
         ></codemirror>
+        <div class="store-buttons">
+          <button class="store-button" v-on:click="copySchema">Copy</button>
+          <button class="store-button" v-on:click="sendSchema">
+            Import to Schema Tester
+          </button>
+        </div>
       </div>
     </div>
   </no-ssr>
@@ -85,6 +91,23 @@ export default {
     },
     changeSchema(schema) {
       this.$data.schema = schemas.schemaStore[schema].schema;
+    },
+    copySchema() {
+      const el = document.createElement("textarea");
+      el.value = this.$data.schema;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+    },
+    sendSchema() {
+      this.$store.commit(
+        "setSchema",
+        "//Insert your joi schema here \n" + this.$data.schema
+      );
+      this.$router.push({
+        path: "/family/joi/tester"
+      });
     }
   },
   created() {
@@ -157,7 +180,7 @@ export default {
   overflow-y: auto;
   font-family: inconsolata, menlo, consolas, monospace !important;
   height: 100% !important;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .CodeMirror-sizer {
@@ -178,5 +201,27 @@ export default {
 
 .cm-string {
   color: #28813f !important;
+}
+
+.store-button {
+  border-radius: 10px;
+  border: none;
+  background: $orange;
+  padding: 5px 15px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  border: 4px solid rgba(0, 0, 0, 0);
+  margin: 0 10px 50px 0;
+  font-family: "Lato", sans-serif;
+}
+
+.store-button:hover {
+  border: 4px solid $orange;
+  background: #fff;
+  color: $orange;
+  text-decoration: none;
+  transition: all 0.3s ease 0s;
 }
 </style>
