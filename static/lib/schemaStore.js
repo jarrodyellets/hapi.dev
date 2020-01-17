@@ -123,5 +123,51 @@ export const schemaStore = {
       })
     });
     `.trim()
+  },
+  lernaJson: {
+    display: "lerna.json",
+    link: "lernaJson",
+    schema: stripIndent`
+    Joi.object({
+      version: Joi.string().pattern(
+        /^(0|[1-9]\\d*)\.(0|[1-9]\\d*|x)\.(0|[1-9]\\d*|x)(-(0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(\\.(0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?(\\+[0-9a-zA-Z-]+(\\.[0-9a-zA-Z-]+)*)?$/)
+        .required(),
+      npmClient: Joi.string(),
+      npmClientArgs: Joi.array().items(Joi.string()),
+      useWorkspaces: Joi.boolean(),
+      workspaces: Joi.array().items(Joi.string()),
+      packages: Joi.array().items(Joi.string()),
+      ignoreChanges: Joi.array().items(Joi.string()),
+      command: Joi.object({
+        publish: Joi.object({
+          ignoreChanges: Joi.alternatives().try(
+            Joi.string(),
+            Joi.array().items(Joi.string())
+          ),
+          message: Joi.string()
+        }),
+        bootstrap: Joi.object({
+          ignore: Joi.alternatives().try(
+            Joi.string(),
+            Joi.array().items(Joi.string())
+          ),
+          npmClientArgs: Joi.array().items(Joi.string())
+        }),
+        init: Joi.object({
+          exact: Joi.boolean()
+        }),
+        run: Joi.object({
+          npmClient: Joi.string()
+        }),
+        version: Joi.object({
+          allowBranch: Joi.alternatives().try(
+            Joi.string(),
+            Joi.array().items(Joi.string())
+          ),
+          message: Joi.string()
+        })
+      })
+    })
+    `
   }
 };

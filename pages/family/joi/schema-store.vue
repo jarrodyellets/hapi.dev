@@ -90,7 +90,11 @@ export default {
       this.$data.schema = input;
     },
     changeSchema(schema) {
-      this.$data.schema = schemas.schemaStore[schema].schema;
+      this.$data.schema =
+        "//" +
+        schemas.schemaStore[schema].display +
+        " \n" +
+        schemas.schemaStore[schema].schema;
     },
     copySchema() {
       const el = document.createElement("textarea");
@@ -101,9 +105,10 @@ export default {
       document.body.removeChild(el);
     },
     sendSchema() {
+      this.$store.commit("setSchema", this.$data.schema);
       this.$store.commit(
-        "setSchema",
-        "//Insert your joi schema here \n" + this.$data.schema
+        "setValidate",
+        "//Insert data to validate here \n" + "{ \n" + " \n" + "}"
       );
       this.$router.push({
         path: "/family/joi/tester"
