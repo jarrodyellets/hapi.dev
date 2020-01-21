@@ -170,6 +170,57 @@ export const schemaStore = {
     })
     `
   },
+  babelrc: {
+    display: "babelrc.json",
+    link: "babelrc",
+    schema: stripIndent`
+    Joi.object({
+      ast: Joi.boolean(),
+      auxiliaryCommentAfter: Joi.string(),
+      code: Joi.boolean(),
+      comments: Joi.boolean(),
+      compact: Joi.alternatives().try(
+        Joi.string().allow("auto").only(),
+        Joi.boolean()
+      ),
+      env: Joi.object(),
+      extends: Joi.string(),
+      filename: Joi.string(),
+      filenameRelative: Joi.string(),
+      highlightCode: Joi.boolean(),
+      ignore: Joi.alternatives().try(
+        Joi.string(),
+        Joi.array().items(Joi.string())
+      ),
+      inputSourceMap: Joi.alternatives().try(
+        Joi.boolean(),
+        Joi.object()
+      ),
+      keepModuleExtensions: Joi.boolean(),
+      moduledId: Joi.string(),
+      moduleIds: Joi.boolean(),
+      only: Joi.alternatives().try(
+        Joi.string(),
+        Joi.array().items(Joi.string())
+      ),
+      plugins: Joi.alternatives().try(
+        Joi.string(),
+        Joi.array().items(Joi.alternatives().try(
+          Joi.string(),
+          Joi.object()
+        ))
+      ),
+      retainLines: Joi.boolean(),
+      sourceFileName: Joi.string(),
+      sourceMaps: Joi.alternatives().try(
+        Joi.string().allow("both", "inline").only(),
+        Joi.boolean()
+      ),
+      sourceMapTarget: Joi.string(),
+      sourceRoot: Joi.string()
+    })
+    `
+  },
   eslintrc: {
     display: ".eslintrc",
     link: "eslintrc",

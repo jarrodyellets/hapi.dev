@@ -14,7 +14,7 @@
         <h1 class="store-title">joi Schema Store</h1>
         <div class="store-list-wrapper">
           <div
-            v-for="schema in schemas.schemaStore"
+            v-for="schema in schemas"
             v-bind:key="schema.link"
             class="store-list-name"
           >
@@ -117,6 +117,13 @@ export default {
   },
   created() {
     let versionsArray = this.moduleAPI.joi.versionsArray;
+    const orderedSchemas = {};
+    Object.keys(schemas.schemaStore)
+      .sort()
+      .forEach(function(key) {
+        orderedSchemas[key] = schemas.schemaStore[key];
+      });
+    this.$data.schemas = orderedSchemas;
     this.$store.commit("setDisplay", "family");
     this.$store.commit("setFamily", "joi");
     if (this.moduleAPI.joi[versionsArray[0]].intro) {
