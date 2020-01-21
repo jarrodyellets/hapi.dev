@@ -199,8 +199,12 @@ export default {
   overflow-x: hidden;
   overflow-y: auto;
   font-family: inconsolata, menlo, consolas, monospace !important;
-  height: 100% !important;
+  height: auto !important;
   margin-bottom: 30px;
+}
+
+.CodeMirror-scroll {
+  max-height: 60vh;
 }
 
 .CodeMirror-sizer {
