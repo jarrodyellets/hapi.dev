@@ -221,6 +221,38 @@ export const schemaStore = {
     })
     `
   },
+  nodemon: {
+    display: "nodemon.json",
+    link: "nodemon",
+    schema: stripIndent`
+    Joi.object({
+      colours: Joi.boolean(),
+      cwd: Joi.string(),
+      delay: Joi.number(),
+      dump: Joi.boolean(),
+      exec: Joi.string(),
+      execMap: Joi.object(),
+      ext: Joi.string(),
+      ignore: Joi.array().items(Joi.string()),
+      ignoreRoot: Joi.array().items(Joi.string()),
+      legacyWatch: Joi.boolean(),
+      noUpdateNotifier: Joi.boolean(),
+      nodeArgs: Joi.array(),
+      pollingInterval: Joi.number(),
+      quiet: Joi.boolean(),
+      signal: Joi.string().allow("SIGTERM", "SIGINT", "SIGQUIT", "SIGKILL", "SIGHUP").only(),
+      spawn: Joi.boolean(),
+      stdin: Joi.boolean(),
+      verbose: Joi.boolean(),
+      watch: Joi.array().items(
+        Joi.string(),
+        Joi.object({
+          re: Joi.string().required()
+        })
+      )
+    })
+    `
+  },
   eslintrc: {
     display: ".eslintrc",
     link: "eslintrc",
