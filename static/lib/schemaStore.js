@@ -253,6 +253,55 @@ export const schemaStore = {
     })
     `
   },
+  typedoc: {
+    display: "typedoc.json",
+    link: "typedoc",
+    schema: stripIndent`
+    Joi.object({
+      disableOutputCheck: Joi.boolean(),
+      entryPoint: Joi.string(),
+      exclude: Joi.array().items(
+        Joi.string()
+      ),
+      excludeInternals: Joi.boolean(),
+      excludeNotExported: Joi.boolean(),
+      excludePrivate: Joi.boolean(),
+      excludeProtected: Joi.boolean(),
+      excludePattern: Joi.array().items(Joi.string()),
+      gaID: Joi.string(),
+      gaSite: Joi.string(),
+      gitRevision: Joi.string(),
+      hideGenerator: Joi.boolean(),
+      ignoreCompilerErrors: Joi.boolean(),
+      includeDeclarations: Joi.boolean(),
+      includes: Joi.string(),
+      inputFiles: Joi.array().items(Joi.string()),
+      json: Joi.string(),
+      listInvalidSymbolLinks: Joi.boolean(),
+      logger: Joi.alternatives().try(
+        Joi.string().allow("console", "none").only(),
+        Joi.function()
+      ),
+      media: Joi.string(),
+      mode: Joi.string().allow("file", "modules").only(),
+      name: Joi.string(),
+      out: Joi.string(),
+      plugin: Joi.alternatives().try(
+        Joi.string(),
+        Joi.array().items(Joi.string())
+      ),
+      readme: Joi.string(),
+      src: Joi.alternatives().try(
+        Joi.string(),
+        Joi.array().items(Joi.string())
+      ),
+      stripInternal: Joi.boolean(),
+      theme: Joi.string(),
+      toc: Joi.array().items(Joi.string()),
+      tsconfig: Joi.string()
+    })
+    `
+  },
   eslintrc: {
     display: ".eslintrc",
     link: "eslintrc",
