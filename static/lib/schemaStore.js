@@ -302,6 +302,65 @@ export const schemaStore = {
     })
     `
   },
+  tsd: {
+    display: "tsd.json",
+    link: "tsd",
+    schema: stripIndent`
+    Joi.object({
+      bundle: Joi.string(),
+      installed: Joi.object(),
+      path: Joi.string(),
+      ref: Joi.string(),
+      repo: Joi.string(),
+      stats: Joi.boolean(),
+      version: Joi.string()
+    })
+    `
+  },
+  prettierrc: {
+    display: "prettierrc.json",
+    link: "prettierrc",
+    schema: stripIndent`
+    Joi.object({
+      arrowParens: Joi.string().allow("avoid", "always").only(),
+      bracketSpacing: Joi.boolean(),
+      cursorOffset: Joi.number().integer(),
+      endOfLine: Joi.string().allow("auto", "lf", "crlf", "cr").only(),
+      filepath: Joi.string(),
+      htmlWhitespaceSensitivity: Joi.string().allow("css", "strict", "ignore").only(),
+      insertPragma: Joi.boolean(),
+      jsxBracketSameLine: Joi.boolean(),
+      jsxSingleQuote: Joi.boolean(),
+      parser: Joi.string().allow("flow", "babel", "babel-flow", "typescript", "css", "less", "scss", "json", 
+      "json5", "json-stringify", "graphql", "markdown", "mdx", "vue", "yaml", "html", "angular", "lwc").only(),
+      pluginSearchDirs: Joi.array().items(Joi.string()),
+      plugins: Joi.array().items(Joi.string()),
+      printWidth: Joi.number().integer(),
+      proseWrap: Joi.string().allow("always", "never", "preserve").only(),
+      quoteProps: Joi.string().allow("as-needed", "consistent", "preserve").only(),
+      rangeEnd: Joi.number().integer(),
+      rangeStart: Joi.number().integer(),
+      semi: Joi.boolean(),
+      singleQuote: Joi.boolean(),
+      tabWidth: Joi.number().integer(),
+      trailingComma: Joi.string().allow("none", "es5", "all").only(),
+      useTabs: Joi.boolean(),
+      vueIndentScriptAndStyle: Joi.boolean(),
+      overrides: Joi.array().items(
+        Joi.object({
+          files: Joi.alternatives().try(
+            Joi.string(),
+            Joi.array().items(Joi.string())
+          ),
+          excludeFiles: Joi.alternatives().try(
+            Joi.string(),
+            Joi.array().items(Joi.string())
+          )
+        })
+      )
+    })
+    `
+  },
   eslintrc: {
     display: ".eslintrc",
     link: "eslintrc",
