@@ -17,10 +17,9 @@ export const schemaStore = {
       repository: Joi.alternatives().try(
         Joi.string(),
         Joi.object().keys({
-          type: Joi.string(),
           url: Joi.string().uri(),
           directory: Joi.string()
-        })
+        }).pattern(/./, Joi.string())
       ),
       bugs: Joi.alternatives().try(
         Joi.string(),
@@ -358,6 +357,50 @@ export const schemaStore = {
           )
         })
       )
+    })
+    `
+  },
+  bower: {
+    display: "bower.json",
+    link: "bower",
+    schema: stripIndent`
+    Joi.object({
+      name: Joi.string().min(1).max(50).required(),
+      description: Joi.string().max(140),
+      version: Joi.string(),
+      license: Joi.alternatives().try(
+        Joi.string().max(140),
+        Joi.array()
+      ),
+      ignore: Joi.alternatives().try(
+        Joi.string(),
+        Joi.array()
+      ),
+      keywords: Joi.array().items(
+        Joi.string().max(50)
+      ),
+      authors: Joi.array().items(
+        Joi.string(),
+        Joi.object()
+      ),
+      homepage: Joi.string().uri(),
+      repository: Joi.object({
+        type: Joi.string().allow("git").only(),
+        url: Joi.string().uri()
+      }),
+      dependencies: Joi.object().pattern(/./, Joi.string()),
+      devDependencies: Joi.object({
+        type: Joi.string()
+      }),
+      resolutions: Joi.object(),
+      private: Joi.boolean(),
+      exportsOverride: Joi.object().pattern(/./, Joi.string()),
+      moduleType: Joi.alternatives().try(
+        Joi.string(),
+        Joi.array().items(
+          Joi.string().allow("amd", "es6", "globals", "node", "yui")
+        )
+      ),
     })
     `
   },
