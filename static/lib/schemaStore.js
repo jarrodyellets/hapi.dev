@@ -123,6 +123,104 @@ export const schemaStore = {
     });
     `.trim()
   },
+  cloudBuild: {
+    display: "Google cloudbuild.json",
+    link: "cloudBuild",
+    schema: stripIndent`
+    Joi.object({
+      steps: Joi.array().items(
+        Joi.object({
+          name: Joi.string(),
+          env: Joi.array().items(
+            Joi.string()
+          ),
+          entrypoint: Joi.string(),
+          volumes: Joi.array().items(
+            Joi.object({
+              name: Joi.string(),
+              path: Joi.string()
+            })
+          ),
+          args: Joi.array().items(
+            Joi.string()
+          ),
+          timeout: Joi.string().pattern(/^\\d+(\\.\\d{0,9})?s$/),
+          id: Joi.string(),
+          secretEnv: Joi.array().items(
+            Joi.string()
+          ),
+          dir: Joi.string()
+        })
+      ).required(),
+      logsBucket: Joi.string(),
+      tags: Joi.array().items(
+        Joi.string()
+      ),
+      substitutions: Joi.object({}),
+      images: Joi.array().items(
+        Joi.string()
+      ),
+      options: Joi.object({
+        machineType: Joi.string().allow("UNSPECIFIED", "N1_HIGHCPU_8", "N1_HIGHCPU_32").only(),
+        volumes: Joi.array().items(
+          Joi.object({
+            name: Joi.string(),
+            path: Joi.string()
+          })
+        ),
+        logStreamingOption: Joi.string().allow("STREAM_DEFAULT", "STREAM_ON", "STREAM_OFF").only(),
+        workerPool: Joi.string(),
+        env: Joi.array().items(
+          Joi.string()
+        ),
+        logging: Joi.string().allow("LOGGING_UNSPECIFIED", "LEGACY", "GCS_ONLY").only(),
+        requestedVerifyOption: Joi.string().allow("Not a verifiable build. (default)",
+        "Verified build.").only(),
+        substitutionOption: Joi.string().allow("MUST_MATCH", "ALLOW_LOOSE").only(),
+        diskSizeGb: Joi.string(),
+        secretEnv: Joi.array().items(
+          Joi.string()
+        ),
+        sourceProvenanceHash: Joi.array().items(
+          Joi.string().allow("NONE", "SHA256", "MD5").only()
+        )
+      }),
+      source: Joi.object({
+        storageSource: Joi.object({
+          generation: Joi.string(),
+          bucket: Joi.string(),
+          object: Joi.string()
+        }),
+        repoSource: Joi.object({
+          tagName: Joi.string(),
+          projectId: Joi.string(),
+          repoName: Joi.string(),
+          commitSha: Joi.string(),
+          dir: Joi.string(),
+          branchName: Joi.string()
+        })
+      }),
+      artifacts: Joi.object({
+        objects: Joi.object({
+          location: Joi.string(),
+          paths: Joi.array().items(
+            Joi.string()
+          )
+        }),
+        images: Joi.array().items(
+          Joi.string()
+        )
+      }),
+      timeout: Joi.string().pattern(/^\\d+(\\.\\d{0,9})?s$/),
+      secrets: Joi.array().items(
+        Joi.object({
+          kmsKeyName: Joi.string(),
+          secretEnv: Joi.object()
+        })
+      )
+    })
+    `
+  },
   lernaJson: {
     display: "lerna.json",
     link: "lernaJson",
