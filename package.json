@@ -10,6 +10,8 @@
     "generate": "node assets/js/getModuleInfo && nuxt generate",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "devTest": "node assets/js/getModuleInfo",
+    "genTS": "typedoc static/lib/typeIndexes --out static/type-docs/ --mode modules --stripInternal --readme none --target ES6 --plugin typedoc-plugin-markdown --ignoreCompilerErrors --includeDeclarations --disableOutputCheck --excludeExternals -hideSources -hideBreadcrumbs",
+    "testDocs": "node assets/js/getModuleInfo & typedoc static/lib/typeIndexes --out static/type-docs/ --mode modules --stripInternal --readme none --target ES6 --plugin typedoc-plugin-markdown --ignoreCompilerErrors --includeDeclarations --disableOutputCheck --excludeExternals -hideSources -hideBreadcrumbs",
     "lintfix": "eslint --fix --ext .js,.vue --ignore-path .gitignore ."
   },
   "dependencies": {
@@ -20,10 +22,12 @@
     "@nuxtjs/markdownit": "^1.2.4",
     "@nuxtjs/pwa": "^3.0.0-beta.16",
     "@nuxtjs/svg": "^0.1.6",
+    "@types/node": "^13.9.3",
     "axios": "^0.19.0",
     "bulma": "^0.7.4",
     "cookie-universal-nuxt": "^2.0.17",
     "cross-env": "^5.2.0",
+    "dom-parser": "^0.1.6",
     "fs": "0.0.1-security",
     "hapi-nuxt": "^1.0.1",
     "highlight.js": "^9.18.1",
@@ -31,7 +35,10 @@
     "lodash": "^4.17.15",
     "markdown-toc": "^1.2.0",
     "nuxt": "^2.4.0",
+    "rimraf": "^3.0.2",
     "semver": "^6.0.0",
+    "typedoc-plugin-markdown": "^2.2.17",
+    "typescript": "^3.8.3",
     "vue-codemirror": "^4.0.6",
     "vue-highlightjs": "^1.3.3",
     "vue-js-modal": "^1.3.31"
@@ -46,6 +53,7 @@
     "node-sass": "^4.13.0",
     "nodemon": "^1.19.4",
     "prettier": "^1.19.1",
-    "sass-loader": "^7.3.1"
+    "sass-loader": "^7.3.1",
+    "typedoc": "^0.17.3"
   }
 }

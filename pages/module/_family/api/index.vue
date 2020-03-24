@@ -45,6 +45,7 @@ const moduleInfo = require("../../../../static/lib/moduleInfo.json");
 import { copyToClipboard, setCodeClipboards } from "~/utils/clipboard";
 let Toc = require("markdown-toc");
 let Semver = require("semver");
+let DomParser = require('dom-parser');
 
 export default {
   components: {
@@ -359,7 +360,405 @@ export default {
       return this.moduleAPI[this.$route.params.family][this.getVersion].menu;
     }
   },
+
+
+  async asyncData({ params, $axios, route, store }) {
+    const options = {
+      headers: {
+        accept: 'application/vnd.github.v3.raw+json',
+        authorization: 'token ' + process.env.GITHUB_TOKEN
+      }
+    };
+    let parser = new DomParser();
+    let heads;
+    let moduleAPIs = {};
+    let api;
+    let apiTestHTML;
+    const types = ['hoek'];
+    moduleAPIs[params.family] = {
+      menus: {},
+      displays: {},
+      versions: {},
+      types: {}
+    };
+    let version = '';
+    let versionsArray = [];
+    if (params.family === "teamwork") {
+      console.log("HEERHE")
+      try {
+          //Add Typescript Docs
+            moduleAPIs[params.family].types['master'] = {};
+            // Get Modules and Interfaces
+            let typesFile = await $axios.$get(
+              'http://localhost:3000/type-docs/modules/_teamwork_5_0_0_index_d_.md'
+            );
+            typesFile = typesFile + '#';
+            let moduleList = await typesFile.match(/###\WModules([\s\S]*?)(?=#)/gm);
+            let classList = await typesFile.match(/###\WClasses([\s\S]*?)(?=#)/gm);
+            if (moduleList) {
+              let modules = moduleList[0].match(/\*(.*)/g);
+              for (let m of modules) {
+                let fileName = m.match(/_(.*).md/);
+                let moduleMD = await $axios.$get('http://localhost:3000/type-docs/modules/' + fileName[0]);
+                moduleMD = moduleMD + '##';
+                let interfaces = moduleMD.match(/###\WInterfaces([\s\S]*?)(?=$)/g);
+                let modSnippet = moduleMD.match(/▸([\s\S]*?)(?=##)/gm);
+                if (modSnippet) {
+                  for (let mod of modSnippet) {
+                    let methods = mod.match(/▸.*\s*:\s.*/gm);
+                    let finalMethods = mod;
+                    let methodClassStart = "<pre class='method'>";
+                    let methodClassEnd = '</pre>';
+                    for (let method of methods) {
+                      let formattedMethod = method
+                        .replace(/[▸`\*.]/g, '')
+                        .replace(/</, '&lt;')
+                        .replace(/>/, '&gt;');
+                      let linkText = formattedMethod.match(/(?<=\[)[^\]](.*?)(?=])/g);
+                      let links = formattedMethod.match(/\[[^\]](.*?)\)/g);
+                      if (linkText) {
+                        for (let j = 0; j < linkText.length; ++j) {
+                          formattedMethod = formattedMethod.replace(links[j], linkText[j]);
+                        }
+                      }
+                      finalMethods = finalMethods.replace(
+                        method,
+                        methodClassStart.concat(formattedMethod) + methodClassEnd
+                      );
+                    }
+                    let finalInter = '';
+                    let interfaceTitle = '';
+                    if (interfaces) {
+                      for (let i of interfaces) {
+                        let interfaceName = i.match(/(?=_)(.*)(?=\))/g);
+                        let interfaceFile = await $axios.$get(
+                          'http://localhost:3000/type-docs/interfaces/' + interfaceName[0]
+                        );
+                        let iTitle = '**' + interfaceFile.match(/(?<=#\WInterface:\W)(.*)/g)[0] + '**:';
+                        interfaceFile = interfaceFile + '#';
+                        let interSnippet = interfaceFile.match(/•\W\*\*([\s\S]*?)(?=#)/gm);
+                        interfaceTitle = interSnippet ? iTitle : '';
+                        let interfaceMethods = interfaceFile.match(/▸([\s\S]*?)(?=#)/gm);
+                        if (interSnippet) {
+                          for (let snippet of interSnippet) {
+                            let defaultValue = snippet.match(/(?<=\*\*`default`\*\*.)([^\s]+)/gm);
+                            if (!defaultValue) {
+                              defaultValue = [null];
+                            }
+                            finalInter =
+                              finalInter +
+                              snippet
+                                .replace(/\*\*\`/gm, '')
+                                .replace(/•/gm, '')
+                                .replace(/\`\*\*/gm, '')
+                                .replace(/(\s\*)(?=\w)/gm, '  `')
+                                .replace(/(?<=\w)(\*$)/gm, '`')
+                                .replace(/(?<=default)(.[^\s]+)/gm, ': `' + defaultValue[0] + '`');
+                          }
+                        }
+                        if (interfaceMethods) {
+                          let finalMethods = '';
+                          let title = '';
+                          for (let interfaceMethod of interfaceMethods) {
+                            title = interfaceMethod.match(/(?<=▸\W\*\*)(.*)(?=\*\*)/g);
+                            if (title) {
+                              title = title[0].toLowerCase();
+                            } else {
+                              title = interfaceFile.match(/(?<=#\WInterface:\W)(.*)/g)[0].toLowerCase();
+                            }
+                            let methodClassStart = "<pre class='method'>";
+                            let methodClassEnd = '</pre>';
+                            let functionMethod = interfaceMethod.match(/▸.*\s*:\s.*/gm);
+                            let functionNoHeader = interfaceMethod
+                              .replace(/\###.+/g, '')
+                              .replace(/(?<=▪\W)(\*\*)/gm, '')
+                              .replace(/(?<=▪\W\w*)(\*\*)/gm, '')
+                              .replace(/▪/gm, '');
+                            for (let i = 0; i < functionMethod.length; ++i) {
+                              let formatMethod = functionMethod[i]
+                                .replace(/▸/gm, '')
+                                .replace(/[▸`\*.]/g, '')
+                                .replace(/</, '&lt;')
+                                .replace(/>/, '&gt;');
+                              let linkText = functionMethod[i].match(/(?<=\[)[^\]](.*)(?=])/);
+                              if (linkText) {
+                                let wrappedFunction =
+                                  methodClassStart.concat(formatMethod.replace(/\[[^\]](.*?)\)/, linkText[0])) +
+                                  methodClassEnd;
+                                finalMethods = functionNoHeader.replace(functionMethod[i], wrappedFunction);
+                              } else {
+                                let wrappedFunction = methodClassStart.concat(formatMethod) + methodClassEnd;
+                                finalMethods = functionNoHeader.replace(functionMethod[i], wrappedFunction);
+                              }
+                            }
+                            const interfaceMethodHTML = await $axios.$post(
+                              'https://api.github.com/markdown',
+                              {
+                                text: finalMethods
+                                  .replace(/(?<=▪\W)(\*\*)/gm, '')
+                                  .replace(/(?<=▪\W\w*)(\*\*)/gm, '')
+                                  .replace(/▪/gm, ''),
+                                mode: 'markdown'
+                              },
+                              {
+                                headers: {
+                                  authorization: 'token ' + process.env.GITHUB_TOKEN
+                                }
+                              }
+                            );
+                            moduleAPIs[params.family].types['master'][title] = await interfaceMethodHTML;
+                          }
+                        }
+                      }
+                    }
+                    let finalInterfaces = interfaceTitle
+                      ? `<br>` + interfaceTitle + `<br><br>` + finalInter + `<br><br>`
+                      : null;
+                    const modHTML = await $axios.$post(
+                      'https://api.github.com/markdown',
+                      {
+                        text:
+                          finalMethods
+                            .replace(/(?<=▪\W)(\*\*)/gm, '')
+                            .replace(/(?<=▪\W\w*)(\*\*)/gm, '')
+                            .replace(/▪/gm, '') + finalInterfaces,
+                        mode: 'markdown'
+                      },
+                      {
+                        headers: {
+                          authorization: 'token ' + process.env.GITHUB_TOKEN
+                        }
+                      }
+                    );
+                    let moduleName = m.match(/(?<=\[)(.*)(?=\])/);
+                    moduleAPIs[params.family].types['master'][moduleName[0].toLowerCase()] = modHTML;
+                  }
+                }
+              }
+            }
+            //Get Classes
+            if (classList) {
+              let classes = classList[0].match(/\*(.*)/g);
+              let finalClass = '';
+              for (let c of classes) {
+                let title = '';
+                let fileName = c.match(/_(.*).md/);
+                let classMD = await $axios.$get('http://localhost:3000/type-docs/classes/' + fileName[0]);
+                classMD = (await classMD) + '##';
+                let constructor = await classMD.match(/(?<=###\W\Wconstructor\n)([\s\S]*?)(?=##\WMethods)/gm);
+                classMD = classMD.replace("•", "▸")
+                let methods = await classMD.match(/([\s\S]*?)(?=##)/gm);
+                let classMethods = classMD.match(/▸([\s\S]*?)(?=##)/gm);
+                if (constructor) {
+                  let method = constructor[0].match(/\\.*\s*:\s.*/);
+                  title = method[0]
+                    .match(/(?<=\*\*)(.*)(?=\*\*)/)[0]
+                    .replace(/\W/, '')
+                    .toLowerCase();
+                  let formatMethod = method[0]
+                    .replace(/[\\+`\*.]/g, '')
+                    .replace(/</, '&lt;')
+                    .replace(/>/, '&gt;');
+                  let linkText = formatMethod.match(/(?<=\[)[^\]](.*?)(?=])/g);
+                  let links = formatMethod.match(/\[[^\]](.*?)\)/g);
+                  let methodClassStart = "<pre class='method'>";
+                  let methodClassEnd = '</pre>';
+                  if (linkText) {
+                    for (let j = 0; j < linkText.length; ++j) {
+                      formatMethod = await formatMethod.replace(links[j], linkText[j]);
+                    }
+                  }
+                  formatMethod = methodClassStart + formatMethod + methodClassEnd;
+                  finalClass = constructor[0]
+                    .replace(method[0], formatMethod)
+                    .replace(/###.*/g, '')
+                    .replace('## Properties', '<br>' + '**Properties**')
+                    .replace(/•/gm, '')
+                    .replace(/\`\*\*/gm, '')
+                    .replace(/(:\s\*)(?=\w)/gm, '  `')
+                    .replace(/(?<=`.*?)(\*$)/gm, '`');
+                }
+                const classHTML = await $axios.$post(
+                  'https://api.github.com/markdown',
+                  {
+                    text: finalClass,
+                    mode: 'markdown'
+                  },
+                  {
+                    headers: {
+                      authorization: 'token ' + process.env.GITHUB_TOKEN
+                    }
+                  }
+                );
+                moduleAPIs[params.family].types['master'][title] = await classHTML;
+                console.log(classMethods)
+                if (classMethods) {
+                  let interfaces = {};
+                  let finalMethods = '';
+                  let classMethodTitle = '';
+                  for (let classMethod of classMethods) {
+                    classMethodTitle = classMethod.match(/(?<=▸\W\*\*)(.*?)(?=\*\*)/g);
+                    if (classMethodTitle) {
+                      classMethodTitle = classMethodTitle[0].toLowerCase();
+                    } else {
+                      classMethodTitle = classMD.match(/(?<=#\WInterface:\W)(.*)/g)[0].toLowerCase();
+                    }
+                    let methodClassStart = "<pre class='method'>";
+                    let methodClassEnd = '</pre>';
+                    let functionMethod = classMethod.match(/▸.*\s*:\s.*/gm);
+                    let functionNoHeader = classMethod
+                      .replace(/\###.+/g, '')
+                      .replace(/(?<=▪\W)(\*\*)/gm, '')
+                      .replace(/(?<=▪\W\w*)(\*\*)/gm, '')
+                      .replace(/▪/gm, '');
+                    for (let i = 0; i < functionMethod.length; ++i) {
+                      let formatMethod = functionMethod[i]
+                        .replace(/▸/gm, '')
+                        .replace(/[▸`\*]/g, '')
+                        .replace(/</, '&lt;')
+                        .replace(/>/, '&gt;');
+                      let linkText = functionMethod[i].match(/(?<=\[)[^\]](.*?)(?=])/g);
+                      let links = formatMethod.match(/\[[^\]](.*?)\)/g);
+                      if (linkText) {
+                        for (let j = 0; j < linkText.length; ++j) {
+                          if (
+                            !(linkText[j] in interfaces) &&
+                            links[j].slice(-4) === '.md)' &&
+                            links[j].includes('/interfaces/')
+                          ) {
+                            interfaces[linkText[j]] = links[j];
+                          }
+                          formatMethod = formatMethod.replace(links[j], linkText[j]);
+                        }
+                      }
+                      let wrappedFunction = methodClassStart.concat(formatMethod) + methodClassEnd;
+                      finalMethods = functionNoHeader.replace(functionMethod[i], wrappedFunction);
+                    }
+                    const classMethodHTML = await $axios.$post(
+                      'https://api.github.com/markdown',
+                      {
+                        text: finalMethods
+                          .replace(/(?<=▪\W)(\*\*)/gm, '')
+                          .replace(/(?<=▪\W\w*)(\*\*)/gm, '')
+                          .replace(/▪/gm, ''),
+                        mode: 'markdown'
+                      },
+                      {
+                        headers: {
+                          authorization: 'token ' + process.env.GITHUB_TOKEN
+                        }
+                      }
+                    );
+                    moduleAPIs[params.family].types['master'][classMethodTitle] = await classMethodHTML;
+                  }
+                }
+              }
+            }
+            //Get Functions
+            let functions = await $axios.$get(
+              'http://localhost:3000/type-docs/modules/_teamwork_5_0_0_index_d_.md',
+              options
+            );
+            functions = functions + '___';
+            let functionSnippets = functions.match(/###\W\W[a-z]([\s\S]*?)(?=___)/gm);
+            if (functionSnippets) {
+              for (let f of functionSnippets) {
+                let finalInter = '';
+                let interfaces = {};
+                let title = f
+                  .match(/\###.+/g)[0]
+                  .substring(5)
+                  .toLowerCase();
+                let linkText = f.match(/(?<=\[)[^\]](.*?)(?=])/g);
+                let links = f.match(/\[[^\]](.*?)\)/g);
+                let methodClassStart = "<pre class='method'>";
+                let methodClassEnd = '</pre>';
+                let functionMethod = f.match(/▸.*\s*:\s.*/gm);
+                let functionNoHeader = f
+                  .replace(/\###.+/g, '')
+                  .replace(/(?<=▪\W)(\*\*)/gm, '')
+                  .replace(/(?<=▪\W\w*)(\*\*)/gm, '')
+                  .replace(/▪/gm, '');
+                for (let i = 0; i < functionMethod.length; ++i) {
+                  let noLinks = functionMethod[i];
+                  if (linkText) {
+                    for (let j = 0; j < linkText.length; ++j) {
+                      if (
+                        !(linkText[j] in interfaces) &&
+                        links[j].slice(-4) === '.md)' &&
+                        links[j].includes('/interfaces/')
+                      ) {
+                        interfaces[linkText[j]] = links[j];
+                      }
+                      functionMethod[i] = await functionMethod[i].replace(links[j], linkText[j]);
+                    }
+                  }
+                  for (let key in interfaces) {
+                    let interfaceFile = interfaces[key].match(/(?=_)(.*)(?=\))/g);
+                    for (let file of interfaceFile) {
+                      let interfaceCode = await $axios.$get(
+                        'http://localhost:3000/type-docs/interfaces/' + file
+                      );
+                      let end = interfaceFile.pop() === file ? `<br><br>` : '';
+                      let interfaceTitle = '**' + interfaceCode.match(/(?<=#\WInterface:\W)(.*)/g)[0] + '**:';
+                      interfaceCode = interfaceCode + '___';
+                      let interSnippet = interfaceCode.match(/•\W\*\*([\s\S]*?)(?=___)/gm);
+                      let interfaceMethods = interfaceCode.match(/▸([\s\S]*?)(?=#)/gm);
+                      if (interSnippet) {
+                        finalInter = finalInter + '\n\n' + `<br>` + '**' + key + '**:' + `<br><br>`;
+                        for (let snippet of interSnippet) {
+                          let defaultValue = snippet.match(/(?<=\*\*`default`\*\*.)([^\s]+)/gm);
+                          if (!defaultValue) {
+                            defaultValue = [null];
+                          }
+                          finalInter =
+                            finalInter +
+                            snippet
+                              .replace(/\*\*\`/gm, '')
+                              .replace(/•/gm, '')
+                              .replace(/\`\*\*/gm, '')
+                              .replace(/(\s\*)(?=\w)/gm, '  `')
+                              .replace(/(?<=\w)(\*$)/gm, '`')
+                              .replace(/(?<=default)(.[^\s]+)/gm, ': `' + defaultValue[0] + '`');
+                        }
+                      }
+                    }
+                  }
+                  let wrappedFunction =
+                    (await methodClassStart.concat(
+                      functionMethod[i]
+                        .replace(/▸/gm, '')
+                        .replace(/[▸`\*.]/g, '')
+                        .replace(/</, '&lt;')
+                        .replace(/>/, '&gt;')
+                    )) + methodClassEnd;
+                  functionNoHeader = functionNoHeader.replace(noLinks, wrappedFunction);
+                }
+                const functionHTML = await $axios.$post(
+                  'https://api.github.com/markdown',
+                  {
+                    text: functionNoHeader + '<div>' + finalInter + '</div>',
+                    mode: 'markdown'
+                  },
+                  {
+                    headers: {
+                      authorization: 'token ' + process.env.GITHUB_TOKEN
+                    }
+                  }
+                );
+                moduleAPIs[params.family].types["master"][title] = await functionHTML;
+              }
+            }
+      } catch (err) {
+        console.log(err.message);
+      }
+    }
+    return { moduleAPIs };
+  },
+
+
   created() {
+    console.log(this.moduleAPIs)
     let module = this.$route.params.family;
     let versionsArray = this.moduleAPI[this.$route.params.family].versionsArray;
     if (!this.$store.getters.loadModules.includes(this.$route.params.family)) {

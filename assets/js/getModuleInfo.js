@@ -2,8 +2,14 @@ let axios = require("axios");
 let Semver = require("semver");
 let Yaml = require("js-yaml");
 let fs = require("fs");
+let rimraf = require("rimraf");
 let Toc = require("markdown-toc");
 require("dotenv").config();
+
+const tsModules = [
+  "file",
+  "teamwork"
+]
 
 const modules = [
   "accept",
@@ -58,6 +64,49 @@ const modules = [
   "wreck",
   "yar"
 ];
+
+          //TS Docs
+for (let mod of tsModules) {
+  console.log("TS ", mod)
+  let dir = './static/lib/typeIndexes/' + mod
+  rimraf('./static/type-docs', err => {
+    if (err) throw err
+  })
+  if (!fs.existsSync(dir)) {
+    fs.mkdir(dir, err => {
+      if (err) throw err
+    })
+  }
+  getIndexes(mod)
+}
+
+async function getIndexes(mod) {
+  const options = {
+    headers: {
+      accept: 'application/vnd.github.v3.raw+json',
+      authorization: 'token ' + process.env.GITHUB_TOKEN
+    }
+  }
+  let branches = await axios.get(
+    "https://api.github.com/repos/jarrodyellets/" + mod + "/branches",
+    options
+  )
+  for (let branch of branches.data) {
+    let packageJSON = await axios.get('https://api.github.com/repos/jarrodyellets/' + mod + '/contents/package.json?ref=' + branch.name, options)
+    if (packageJSON.data.types) {
+      let dir = './static/lib/typeIndexes/' + mod + '/' + packageJSON.data.version
+      if (!fs.existsSync(dir)) {
+        fs.mkdir(dir, err => {
+          if (err) throw err
+        })
+      }
+      let res = await axios.get('https://api.github.com/repos/jarrodyellets/' + mod + '/contents/lib/index.d.ts?ref=' + branch.name, options)
+      await fs.writeFile(dir + '/index.d.ts', res.data, function(err) {
+        if (err) throw err
+      })
+    }
+  }
+}
 
 getInfo();
 
