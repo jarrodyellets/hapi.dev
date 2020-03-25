@@ -50,6 +50,12 @@ callback events into a single promise.
 
 Start a new team work.
 
+Example:
+
+```js
+new Team({ meetings: 3 } //Setup 3 meetings
+```
+
 **Parameters:**
 
 Name | Type | Description |
