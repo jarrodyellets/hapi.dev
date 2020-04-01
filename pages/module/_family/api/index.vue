@@ -117,7 +117,6 @@ export default {
       this.$data.menu = this.moduleAPI[this.$route.params.family][
       this.getVersion
     ].menu;
-    console.log("V", this.getVersion)
       this.setClasses();
       this.setClipboards();
     },
