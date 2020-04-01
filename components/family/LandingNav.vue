@@ -284,22 +284,8 @@ export default {
     "menuProvider"
   ],
   methods: {
-    async onVersionChange(event) {
-      this.$store.commit("setVersion", event.target.value);
-      await this.$router.push({
-        path: this.$route.path,
-        query: { v: event.target.value }
-      });
-      this.$emit("input", "");
-      document
-        .querySelector(".family-search-results")
-        .classList.remove("nav-display");
-      document
-        .querySelector(".family-search-error")
-        .classList.remove("nav-display");
-      window.scrollTo(0, 0);
-      this.$parent.setClasses();
-      this.$emit("clipboards")
+    onVersionChange(event) {
+      this.$emit("change", event)
     },
     onSearch() {
       if (this.search !== "") {

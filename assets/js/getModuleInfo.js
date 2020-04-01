@@ -167,6 +167,7 @@ async function getInfo() {
               branch.name,
             options
           );
+          console.log(gitHubVersion.data.version)
           const nodeYaml = await axios.get(
             "https://api.github.com/repos/hapijs/" +
               repositories.data[r].name +
@@ -178,6 +179,7 @@ async function getInfo() {
           //Get API
           try {
             if (modules.includes(repositories.data[r].name)) {
+              console.log(branch.name)
               const api = await axios.get(
                 "https://api.github.com/repos/jarrodyellets/" +
                   repositories.data[r].name +
