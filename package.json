@@ -11,7 +11,7 @@
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "devTest": "node assets/js/getModuleInfo",
     "genTS": "typedoc static/lib/typeIndexes --out static/type-docs/ --mode modules --stripInternal --readme none --target ES6 --plugin typedoc-plugin-markdown --ignoreCompilerErrors --includeDeclarations --disableOutputCheck --excludeExternals -hideSources -hideBreadcrumbs",
-    "testDocs": "node assets/js/getModuleInfo & typedoc static/lib/typeIndexes --out static/type-docs/ --mode modules --stripInternal --readme none --target ES6 --plugin typedoc-plugin-markdown --ignoreCompilerErrors --includeDeclarations --disableOutputCheck --excludeExternals -hideSources -hideBreadcrumbs",
+    "testDocs": "node assets/js/getModuleInfo && typedoc static/lib/typeIndexes --out static/type-docs/ --mode modules --stripInternal --readme none --target ES6 --plugin typedoc-plugin-markdown --ignoreCompilerErrors --includeDeclarations --disableOutputCheck --excludeExternals -hideSources -hideBreadcrumbs && nuxt generate",
     "lintfix": "eslint --fix --ext .js,.vue --ignore-path .gitignore ."
   },
   "dependencies": {

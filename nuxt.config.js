@@ -179,6 +179,7 @@ module.exports = {
       "/module/subtext/api",
       "/module/subtext/changelog",
       "/module/teamwork",
+      "/module/teamwork/api",
       "/module/teamwork/changelog",
       "/module/topo",
       "/module/topo/api",

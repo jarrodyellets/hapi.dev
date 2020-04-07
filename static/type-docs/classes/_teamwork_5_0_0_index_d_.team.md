@@ -48,12 +48,17 @@ callback events into a single promise.
 
 \+ **new Team**(`options?`: [Options](../interfaces/_teamwork_5_0_0_index_d_.team.options.md)): *[Team](_teamwork_5_0_0_index_d_.team.md)*
 
-Start a new team work.
+Team bridges between callbacks and promises. Used to convert callback-based
+interfaces to a promise-based result including support for collecting multiple
+callback events into a single promise.
 
+Start a new team work.
 Example:
 
 ```js
-new Team({ meetings: 3 } //Setup 3 meetings
+const Teamwork = require('@hapi/teamwork');
+
+const team = new Teamwork.Team({ meetings: 3 }); //Setup 3 meetings
 ```
 
 **Parameters:**
@@ -79,6 +84,16 @@ Resulting work when all the meetings are done.
 ▸ **attend**(`note?`: Error | [ElementOf](_teamwork_5_0_0_index_d_.team.md#static-elementof)‹Results›): *void*
 
 Attend a single meeting.
+
+Example:
+
+```js
+const Teamwork = require('@hapi/teamwork');
+
+const team = new Teamwork.Team();
+
+team.attend('1'); //Attend a meeting with a note of '1'
+```
 
 **Parameters:**
 

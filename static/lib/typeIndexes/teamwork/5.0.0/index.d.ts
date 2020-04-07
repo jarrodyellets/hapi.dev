@@ -5,12 +5,18 @@
  */
 export class Team<Results extends any | any[] = void> {
     /**
-     * Start a new team work.
      * 
-     *Example:
+     * Team bridges between callbacks and promises. Used to convert callback-based
+     * interfaces to a promise-based result including support for collecting multiple
+     * callback events into a single promise.
+     * 
+     * Start a new team work.
+     * Example:
      *
      *```js
-     *new Team({ meetings: 3 } //Setup 3 meetings
+     *const Teamwork = require('@hapi/teamwork');
+     *
+     *const team = new Teamwork.Team({ meetings: 3 }); //Setup 3 meetings
      *```
      *
      * @param options Configuration of the team work.
@@ -24,6 +30,16 @@ export class Team<Results extends any | any[] = void> {
 
     /**
      * Attend a single meeting.
+     *
+     *Example:
+     *
+     *```js
+     *const Teamwork = require('@hapi/teamwork');
+     *
+     *const team = new Teamwork.Team();
+     *
+     *team.attend('1'); //Attend a meeting with a note of '1' 
+     *```
      * 
      * @param note An optional note that will be included in the work's results. If an error is provided, the work will be immediately rejected with that error.
      */
@@ -65,7 +81,7 @@ export class Events<T> {
 
     /**
      * Returns a standard async iterator interface object.
-     *
+     * 
      * @returns async iterator interface object.
      */
     iterator(): Events.Iterator<T>;
