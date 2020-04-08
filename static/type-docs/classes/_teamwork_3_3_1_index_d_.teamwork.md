@@ -32,6 +32,14 @@
 
 Start a new team work.
 
+Example:
+
+```js
+const Teamwork = require('@hapi/teamwork');
+
+const team = new Teamwork({ meetings: 3 }); //Setup 3 meetings
+```
+
 **Parameters:**
 
 Name | Type | Description |
@@ -55,6 +63,16 @@ Resulting work when all the meetings are done.
 ▸ **attend**(`note?`: Error | [ElementOf](../modules/_teamwork_3_3_1_index_d_.md#elementof)‹Results›): *void*
 
 Attend a single meeting.
+
+Example:
+
+```js
+const Teamwork = require('@hapi/teamwork');
+
+const team = new Teamwork();
+
+team.attend('1'); //Attend a meeting with a note of '1'
+```
 
 **Parameters:**
 

@@ -483,7 +483,7 @@ export default {
           moduleAPIs[params.family].types[version] = {};
           // Get Modules and Interfaces
           let typesFile = await $axios.$get(
-            "http://localhost:3000/type-docs/modules/_teamwork_" + version.replace(/\./g, '_') + "_index_d_.md"
+            "https://hapi-ts-api.netlify.com/type-docs/modules/_teamwork_" + version.replace(/\./g, '_') + "_index_d_.md"
           );
           typesFile = typesFile + "#";
           let moduleList = await typesFile.match(
@@ -497,7 +497,7 @@ export default {
             for (let m of modules) {
               let fileName = m.match(/_(.*).md/);
               let moduleMD = await $axios.$get(
-                "http://localhost:3000/type-docs/modules/" + fileName[0]
+                "https://hapi-ts-api.netlify.com/type-docs/modules/" + fileName[0]
               );
               moduleMD = moduleMD + "##";
               let interfaces = moduleMD.match(
@@ -538,7 +538,7 @@ export default {
                     for (let i of interfaces) {
                       let interfaceName = i.match(/(?=_)(.*)(?=\))/g);
                       let interfaceFile = await $axios.$get(
-                        "http://localhost:3000/type-docs/interfaces/" +
+                        "https://hapi-ts-api.netlify.com/type-docs/interfaces/" +
                           interfaceName[0]
                       );
                       let iTitle =
@@ -693,7 +693,7 @@ export default {
               let fileName = c.match(/_(.*).md/);
 
               let classMD = await $axios.$get(
-                "http://localhost:3000/type-docs/classes/" + fileName[0]
+                "https://hapi-ts-api.netlify.com/type-docs/classes/" + fileName[0]
               );
               classMD = (await classMD) + "##";
               let constructor = classMD.match(
@@ -744,7 +744,7 @@ export default {
                 for (let i of interfaces) {
                   let interfaceName = i.match(/(?=_)(.*)(?=\))/g);
                   let interfaceFile = await $axios.$get(
-                    "http://localhost:3000/type-docs/interfaces/" +
+                    "https://hapi-ts-api.netlify.com/type-docs/interfaces/" +
                       interfaceName[0]
                   );
                   let iTitle =
@@ -952,9 +952,8 @@ export default {
             }
           }
           //Get Functions
-                    console.log("http://localhost:3000/type-docs/modules/_" + version.replace(/\./g, '_') + "_index_d_.md")
           let functions = await $axios.$get(
-            "http://localhost:3000/type-docs/modules/_teamwork_" + version.replace(/\./g, '_') + "_index_d_.md",
+            "https://hapi-ts-api.netlify.com/type-docs/modules/_teamwork_" + version.replace(/\./g, '_') + "_index_d_.md",
             options
           );
           functions = functions + "___";
@@ -1000,7 +999,7 @@ export default {
                   let interfaceFile = interfaces[key].match(/(?=_)(.*)(?=\))/g);
                   for (let file of interfaceFile) {
                     let interfaceCode = await $axios.$get(
-                      "http://localhost:3000/type-docs/interfaces/" + file
+                      "https://hapi-ts-api.netlify.com/type-docs/interfaces/" + file
                     );
                     let end = interfaceFile.pop() === file ? `<br><br>` : "";
                     let interfaceTitle =

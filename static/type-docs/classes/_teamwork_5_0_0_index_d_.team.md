@@ -53,6 +53,7 @@ interfaces to a promise-based result including support for collecting multiple
 callback events into a single promise.
 
 Start a new team work.
+
 Example:
 
 ```js
