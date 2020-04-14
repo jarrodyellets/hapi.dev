@@ -592,6 +592,37 @@ h1 a {
   display: block !important;
 }
 
+.family-markdown-wrapper table {
+  margin: 30px 0 0 0;
+  table-layout: auto;
+  width: 100%;
+  max-width: 800px;
+}
+
+.family-markdown-wrapper table th {
+  font-size: 1.05rem;
+  border: 1px solid #ddd;
+  padding: 10px 16px;
+}
+
+.family-markdown-wrapper table td {
+  padding: 10px 16px;
+  height: 76px;
+  vertical-align: middle;
+}
+
+.family-markdown-wrapper tbody tr {
+  border: 1px solid #ddd;
+}
+
+.family-markdown-wrapper tbody tr:nth-child(odd) {
+  background-color: #f8f8f8;
+}
+
+.family-markdown-wrapper tbody tr td:nth-child(odd) {
+  border-right: 1px solid #ddd;
+}
+
 @media screen and (max-width: 900px) {
   .ecosystem-title {
     margin: 20px 0 0 0;
